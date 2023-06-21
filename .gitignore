@@ -14,7 +14,7 @@
 /*.Rcheck/
 # RStudio files
 .Rproj.user/
-.Rproj
+.Rproj.user
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
@@ -34,4 +34,4 @@ docs/
 po/*~
 # RStudio Connect folder
 rsconnect/
-uon-master-dissertation.Rproj
+uon-msc-thesis.Rproj
