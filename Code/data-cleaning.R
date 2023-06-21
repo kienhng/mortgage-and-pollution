@@ -1,17 +1,12 @@
-install.packages("usmap")
-install.packages("maptools")
-install.packages("rgdal")
-install.packages("tidycensus")
+rm(list=ls())
 
-library(tidyverse)
-library(readr)
-library(stringr)
-library(usmap)
-library(ggplot2)
-library(maptools)
-library(rgdal)
-library(tidycensus)
-library(haven)
+packages <- c("usmap","maptools","rgdal","tidycensus","tidyverse","stringr","usmap","ggplot2","maptools","haven")
+need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
+
+lapply(need.install, install.packages, character.only=T)
+lapply(packages, library, character.only=T)
+
+wd=getwd()
 
 raw_2018 <- read_csv("2018_us.csv")
 raw_2019 <- read_csv("2019_us.csv")
