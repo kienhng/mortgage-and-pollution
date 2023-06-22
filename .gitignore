@@ -33,4 +33,5 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 uon-msc-thesis.Rproj
-\Data\RawData-TRI\
+/Data/RawData-TRI
+/Data
