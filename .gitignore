@@ -28,10 +28,9 @@ vignettes/*.pdf
 *.knit.md
 # R Environment Variables
 .Renviron
-# pkgdown site
-docs/
 # translation temp files
 po/*~
 # RStudio Connect folder
 rsconnect/
 uon-msc-thesis.Rproj
+\Data\RawData-TRI\
