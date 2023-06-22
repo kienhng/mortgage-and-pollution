@@ -58,7 +58,7 @@ new_colnames <- str_replace_all(
 colnames(raw_dat) <- new_colnames
 
 ## Remove unused columns
-tri_data <- raw_dat %>%
+clean_dat <- raw_dat %>%
   filter(carcinogen == "YES") %>%
   filter(!(st %in% c("AS","GU", "MP", "PR", "VI"))) %>% ## Remove outside-US territories
   select(year,
@@ -111,5 +111,6 @@ tri_data <- raw_dat %>%
          x8.8_onetime_release,
          prod_ratio_or_activity,
          x8.9_production_ratio
-         )
+         ) 
 
+clean_dat[,sum(total_releases),year]
