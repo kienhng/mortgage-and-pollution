@@ -7,12 +7,13 @@ lapply(packages, library, character.only=T)
 wd=getwd()
 tri.folder="/Data/RawData-TRI"
 
-raw_2017 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2017_us.csv")))
+#raw_2017 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2017_us.csv")))
 raw_2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
 raw_2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
 raw_2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
 raw_2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
 raw_fipscode <- read_dta(paste0(wd,"/Data/fips_code.dta"))
+
 
 # Merge data
 ## Check consistency in column names
@@ -24,11 +25,10 @@ for (i in tri.list) {
 }
 
 ## Merge data
-raw_dat <- rbind(raw_2017,raw_2018,raw_2019,raw_2020,raw_2021)
+raw_dat <- rbind(raw_2018,raw_2019,raw_2020,raw_2021)
 
 #--------------------------
 #---- Rename Variables ----
-#--------------------------
 
 ## Remove the index in colnames
 str_view(colnames(raw_dat), "^0*?[1-9]\\d*\\.") 
@@ -59,7 +59,7 @@ colnames(raw_dat) <- new_colnames
 
 ## Remove unused columns
 clean_dat <- raw_dat %>%
-  filter(carcinogen == "YES") %>%
+#  filter(carcinogen == "YES") %>%
   filter(!(st %in% c("AS","GU", "MP", "PR", "VI"))) %>% ## Remove outside-US territories
   select(year,
          trifd, 
@@ -68,7 +68,8 @@ clean_dat <- raw_dat %>%
          city,
          county,
          st,
-         zip, 
+         zip,
+         chemical,
          latitude,
          longitude,
          industry_sector_code,
@@ -111,6 +112,16 @@ clean_dat <- raw_dat %>%
          x8.8_onetime_release,
          prod_ratio_or_activity,
          x8.9_production_ratio
-         ) 
+         )
 
 clean_dat[,sum(total_releases),year]
+raw_dat[,.N]
+
+clean_dat[clean_dat[,x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0]][,.N,zip][N > 4]
+clean_dat[clean_dat[,x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0 & carcinogen == "YES"]][,.N,chemical][N>100]
+
+clean_dat[,.N,total_releases >0]
+
+246270/(246270 + 67738)
+
+clean_dat[,.N, carcinogen]
