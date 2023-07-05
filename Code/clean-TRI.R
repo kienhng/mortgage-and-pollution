@@ -61,7 +61,7 @@ tri_clean <- tri_dat %>%
   filter(carcinogen == "YES") %>%
   filter(!(st %in% c("AS","GU", "MP", "PR", "VI"))) %>% ## Remove outside-US territories
   filter(total_releases > 0) %>%
-  filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>%
+#  filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>% ## Select air pollution only
   select(year,
          trifd, 
          frs_id,
