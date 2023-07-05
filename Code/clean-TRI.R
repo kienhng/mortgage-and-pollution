@@ -1,4 +1,4 @@
-packages <- c("data.table","rgdal","tidyverse","stringr","ggplot2","haven")
+packages <- c("data.table","rgdal","tidyverse","stringr","ggplot2","haven","zipcodeR")
 need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 
 lapply(need.install, install.packages, character.only=T)
@@ -7,17 +7,16 @@ lapply(packages, library, character.only=T)
 wd=getwd()
 tri.folder="/Data/RawData-TRI"
 
-#raw_2017 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2017_us.csv")))
-raw_2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
-raw_2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
-raw_2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
-raw_2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
-raw_fipscode <- read_dta(paste0(wd,"/Data/fips_code.dta"))
-
+#tri_2017 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2017_us.csv")))
+tri_2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
+tri_2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
+tri_2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
+tri_2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
+tri_fipscode <- read_dta(paste0(wd,"/Data/fips_code.dta"))
 
 # Merge data
 ## Check consistency in column names
-tri.list <- list(raw_2017,raw_2018,raw_2019,raw_2020,raw_2021)
+tri.list <- list(tri_2018,tri_2019,tri_2020,tri_2021)
 for (i in tri.list) {
   for (k in tri.list) {
     print(any(colnames(i) != colnames(k)))
@@ -25,16 +24,16 @@ for (i in tri.list) {
 }
 
 ## Merge data
-raw_dat <- rbind(raw_2018,raw_2019,raw_2020,raw_2021)
+tri_dat <- rbind(tri_2018,tri_2019,tri_2020,tri_2021)
 
 #--------------------------
 #---- Rename Variables ----
 
 ## Remove the index in colnames
-str_view(colnames(raw_dat), "^0*?[1-9]\\d*\\.") 
+str_view(colnames(tri_dat), "^0*?[1-9]\\d*\\.") 
 # The "\\." is the dot
 # and "^0*?[1-9]\\d*" is to match any number greater than 
-names_df <- t(as.data.table(str_split(colnames(raw_dat), "^0*?[1-9]\\d*\\. ")))
+names_df <- t(as.data.table(str_split(colnames(tri_dat), "^0*?[1-9]\\d*\\. ")))
 new_colnames <- names_df[,2]
 
 ## Adding x in front of colnames starting with a digit
@@ -55,12 +54,14 @@ new_colnames <- str_replace_all(
       ,"\\(","")
     ,"\\)","")
 
-colnames(raw_dat) <- new_colnames
+colnames(tri_dat) <- new_colnames
 
 ## Remove unused columns
-clean_dat <- raw_dat %>%
-#  filter(carcinogen == "YES") %>%
+tri_clean <- tri_dat %>%
+  filter(carcinogen == "YES") %>%
   filter(!(st %in% c("AS","GU", "MP", "PR", "VI"))) %>% ## Remove outside-US territories
+  filter(total_releases > 0) %>%
+  filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>%
   select(year,
          trifd, 
          frs_id,
@@ -114,14 +115,12 @@ clean_dat <- raw_dat %>%
          x8.9_production_ratio
          )
 
-clean_dat[,sum(total_releases),year]
-raw_dat[,.N]
+tri_clean[,sum(total_releases),year]
+tri_dat[,.N]
+tri_clean[,.N]
 
-clean_dat[clean_dat[,x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0]][,.N,zip][N > 4]
-clean_dat[clean_dat[,x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0 & carcinogen == "YES"]][,.N,chemical][N>100]
+tri_clean[tri_clean[,x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0]][,.N,zip][N > 4]
+tri_clean[tri_clean[,x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0 & carcinogen == "YES"]][,.N,chemical][N>100]
 
-clean_dat[,.N,total_releases >0]
+tri_clean[,.N,total_releases >0]
 
-246270/(246270 + 67738)
-
-clean_dat[,.N, carcinogen]
