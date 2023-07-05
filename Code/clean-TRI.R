@@ -66,12 +66,12 @@ tri_clean <- tri_dat %>%
          )
 
 #---- Create FIPS code for TRI data ----
-## Add state code to tri_clean data
+##---- Add state code to tri_clean data ----
 st_code <- fips[,.N,c("state","state_code")][,c("state","state_code")][!(state %in% c("AS","GU", "MP", "PR", "VI", "UM"))]
 tri_clean <- tri_clean[st_code,on = "state"]
 
-## Create a statecode-county variable to match with FIPS data
-## The process is:
+##---- Create a statecode-county variable to match with FIPS data ----
+## The process is as follows:
 ## 1. Make a vector of unique county in the TRI dataset
 ## 2. Compare the "TRI county" vector with "FIPS dataset county" vector
 ## 3. MAKE CHANGES IN THE FIPS DATASET to match with the "TRI county vector"
@@ -87,5 +87,4 @@ county_fips <- fips[,c("state_code","county","fips")][,county := str_to_upper(co
 county_fips[,county := str_remove(county_fips$county, "\\b( COUNTY)\\b")]
 tri_county[!(tri_county %in% county_fips[,county])] ## There are 38 values of TRI counties dont have match
 county_fips[,county][!(tri_county %in% county_fips[,county])]
-
 
