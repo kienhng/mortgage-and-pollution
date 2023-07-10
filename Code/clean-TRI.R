@@ -4,16 +4,16 @@ need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 lapply(need.install, install.packages, character.only=T)
 lapply(packages, library, character.only=T)
 
-tri_2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
-tri_2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
-tri_2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
-tri_2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
+tri2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
+tri2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
+tri2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
+tri2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
 
 fips <- as.data.table(read_dta(paste0(wd,"/Data/fips_code.dta")))
-tri_dat <- rbind(tri_2018,tri_2019,tri_2020,tri_2021)
+tri_dat <- rbind(tri2018,tri2019,tri2020,tri2021)
 
 ## Check consistency in column names
-#tri.list <- list(tri_2018,tri_2019,tri_2020,tri_2021)
+#tri.list <- list(tri2018,tri2019,tri2020,tri2021)
 #for (i in tri.list) {
 #  for (k in tri.list) {
 #    print(any(colnames(i) != colnames(k)))
@@ -55,19 +55,16 @@ tri_clean <- tri_dat %>%
   filter(total_releases > 0) %>%
 #  filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>% ## Select air pollution only
   select(year, trifd,  frs_id, facility_name,  city, county, st, zip, chemical, latitude, longitude, 
-         industry_sector_code, primary_sic,  primary_naics, clean_air_act_chemical, classification, 
+         industry_sector_code, primary_sic,  primary_naics, 
+         clean_air_act_chemical, classification, 
          metal, metal_category, carcinogen, unit_of_measure, 
-         x5.1_fugitive_air,  x5.2_stack_air, x5.3_water, x5.4_underground, 
-         x5.5.1a_rcra_c_landfill, x5.5.1b_other_landfills, 
-         x5.5.2_land_treatment, x5.5.3a_rcra_surface_im, x5.5.3b_other_surface_i, x5.5.4_other_disposal, 
-         potw_total_transfers, onsite_release_total, 
-         offsite_release_total, offsite_recycled_total, offsite_energy_recovery_t, 
+         x5.1_fugitive_air,  x5.2_stack_air, x5.3_water, x5.4_underground,
+         onsite_release_total, 
+         offsite_release_total, 
+         offsite_recycled_total, 
          offsite_treated_total, 
          total_releases, 
-         x8.1a_onsite_contained, x8.1b_onsite_other, x8.1c_offsite_contain, 
-         x8.1d_offsite_other_r, x8.2_energy_recover_on, x8.3_energy_recover_of, 
-         x8.4_recycling_on_site, x8.5_recycling_off_sit, x8.6_treatment_on_site, x8.7_treatment_off_site, 
-         production_wste_8.18.7, x8.8_onetime_release, prod_ratio_or_activity, x8.9_production_ratio
+         x8.6_treatment_on_site, x8.7_treatment_off_site, 
          )
 
 #---- Create FIPS code for TRI data ----
@@ -137,10 +134,10 @@ tri_clean[,st_ct := str_replace(tri_clean$st_ct, "WI-ST CROIX ISLAND$","WI-ST CR
 
 ##---- Merge TRI_clean with FIPS data ----
 tri_match <- check_fips[tri_clean, on = "st_ct"]
-tri_test <- tri_match[,.(fips,year,carcinogen,total_releases,onsite_release_total,offsite_release_total)]
-tri_test[,carcinogen := ifelse(carcinogen == "YES",1,0)]
-tri_test[,year_fips := paste0(year,"-",fips)]
+tri_match[,carcinogen := ifelse(carcinogen == "YES",1,0)]
+tri_match[,carc_releases := carcinogen*total_releases]
+tri_match[,year_fips := paste0(year,"-",fips)]
+tri_match <- tri_match[,.(state,fips,year,year_fips,carcinogen,x5.1_fugitive_air,x5.2_stack_air,x5.3_water,x5.4_underground,
+                          onsite_release_total,offsite_release_total,total_releases)]
 
-tri_state <- tri_match[,.(year,fips,state_code)]
-tri_state[,year_fips := paste0(year,"-",fips)]
-tri_state <- unique(tri_state)
+tri_summary 

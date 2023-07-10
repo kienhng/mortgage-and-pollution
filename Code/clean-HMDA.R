@@ -22,31 +22,38 @@ load(paste0(wd,hmda.folder,"hmda2021.RData"))
 lapply(list(hmda2018,hmda2019,hmda2020,hmda2021), as.data.table)
 
 #---- Compare HMDA and TRI data on ID ----
-##---- Clean and Merge test ----
-# Clean Test
-mean(hmda2018[income > 0 & income < quantile(income, probs = 0.95, na.rm = T)][,income])
+##---- Clean and Merge ----
+# Clean HMDA data
+raw_list <- list(hmda2018,hmda2019,hmda2020,hmda2021)
+new_list <- list(1:4)
 
-test2018 <- hmda2018[loan_term == 360][loan_to_value_ratio > 0 & loan_to_value_ratio < 100.01][rate_spread > -5 & rate_spread < 5][interest_rate < 15][income > 0 & income < quantile(income, probs = 0.95, na.rm = T)]
-test2019 <- hmda2019[loan_term == 360][loan_to_value_ratio > 0 & loan_to_value_ratio < 100.01][rate_spread > -5 & rate_spread < 5][interest_rate < 15][income > 0 & income < quantile(income, probs = 0.95, na.rm = T)]
-test2020 <- hmda2020[loan_term == 360][loan_to_value_ratio > 0 & loan_to_value_ratio < 100.01][rate_spread > -5 & rate_spread < 5][interest_rate < 15][income > 0 & income < quantile(income, probs = 0.95, na.rm = T)]
-test2021 <- hmda2021[loan_term == 360][loan_to_value_ratio > 0 & loan_to_value_ratio < 100.01][rate_spread > -5 & rate_spread < 5][interest_rate < 15][income > 0 & income < quantile(income, probs = 0.95, na.rm = T)]
+for (i in 1:4) {
+  new_list[[i]] <- raw_list[[i]][loan_term == 360
+                                 ][loan_to_value_ratio > 0 & loan_to_value_ratio < 100.01
+                                   ][rate_spread > -4 & rate_spread < 4
+                                     ][interest_rate < 15
+                                       ][income > 0 & income < quantile(income, probs = 0.999, na.rm = T)
+                                         ][!(applicant_age %in% c("8888","9999", NA))
+                                           ][property_value < quantile(property_value, probs = 0.999, na.rm = T)
+                                             ]
+}
 
-hist(hmda2018[rate_spread < 2 & rate_spread > -1][,rate_spread])
-hist(hmda2018[income < 4*10^5 & income > 0][,income])
+hmda2018_cl <- new_list[[1]]
+hmda2019_cl <- new_list[[2]]
+hmda2020_cl <- new_list[[3]]
+hmda2021_cl <- new_list[[4]]
 
 # Collect all unique tracts in HMDA 2018
-hmda18_tracts <- test2018[,.N,census_tract][,census_tract]
-hmda18_county <- test2018[,.N,st_cnty_fips][,st_cnty_fips]
+# hmda18_tracts <- test2018[,.N,census_tract][,census_tract]
+# hmda18_county <- test2018[,.N,st_cnty_fips][,st_cnty_fips]
 
 # Merge data test
-setkey(test2018,fips)
-setkey(tri_match, fips)
+# setkey(test2018,fips)
+# setkey(tri_match, fips)
 
 ## Summarise HMDA data by year-county
-hmda_test <- rbind(test2018,test2019,test2020,test2021)
-hmda_test[,year_fips := paste0(year,"-",st_cnty_fips)]
-hmda_test_summary <- hmda_test[,lapply(.(loan_to_value_ratio,rate_spread,property_value,income),mean),by = year_fips]
-colnames(hmda_test_summary) <- c("year_fips","ltv_ratio","rate_spread","property_value","income")
+hmda_cl <- rbind(hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
+hmda_cl[,year_fips := paste0(year,"-",st_cnty_fips)]
 
 ## Summarise TRI data by year-county
 tri_test_summary <- tri_test[,lapply(.SD,mean), by = year_fips]
