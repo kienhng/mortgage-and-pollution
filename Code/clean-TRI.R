@@ -14,19 +14,12 @@ county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUN
 
 tri_dat <- rbind(tri2018,tri2019,tri2020,tri2021)
 
-## Check consistency in column names
-#tri.list <- list(tri2018,tri2019,tri2020,tri2021)
-#for (i in tri.list) {
-#  for (k in tri.list) {
-#    print(any(colnames(i) != colnames(k)))
-#  }
-#}
-
 #---- 1. Rename Variables ----
 ## Remove the index in colnames
 str_view(colnames(tri_dat), "^0*?[1-9]\\d*\\.")
 ## The "\\." is the dot
 ## and "^0*?[1-9]\\d*" is to match any number greater than 
+
 names_df <- t(as.data.table(str_split(colnames(tri_dat), "^0*?[1-9]\\d*\\. ")))
 new_colnames <- names_df[,2]
 
@@ -56,13 +49,14 @@ tri_census <- county_census[,.(fips,POP_COU,HOU_COU,ALAND_COU,ALAND_PCT_URB,POPP
 tri_census[,fips := as.numeric(fips)]
 colnames(tri_census) <- str_to_lower(colnames(tri_census))
 
-##---- Clean TRI data ----
-tri_clean <- tri_dat %>%
+##---- Sample selection from TRI data ----
+tri_sample <- tri_dat %>%
 #  filter(carcinogen == "YES") %>%
-  filter(!(st %in% c("AS","GU", "MP", "PR", "VI"))) %>% ## Remove outside-US territories
-  filter(classification != "Dioxin")
+  filter(!(st %in% c("AS","GU", "MP", "PR", "VI"))) %>% # Remove outside-US territories
+  filter(zip != 99686) %>% # Remove VALDEZ-CORDOVA CENSUS AREA county
+  filter(classification != "Dioxin") %>%
   filter(total_releases > 0) %>%
-#  filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>% ## Select air pollution only
+# filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>% ## Select air pollution only
   select(year, trifd,  frs_id, facility_name,  city, county, st, zip, chemical, latitude, longitude, 
          industry_sector_code, primary_sic,  primary_naics, 
          clean_air_act_chemical, classification, 
@@ -72,10 +66,9 @@ tri_clean <- tri_dat %>%
          offsite_release_total, 
          offsite_recycled_total, 
          offsite_treated_total, 
-         total_releases, 
-         x8.6_treatment_on_site, x8.7_treatment_off_site, 
-         )
-
+         total_releases,
+         x8.6_treatment_on_site, 
+         x8.7_treatment_off_site)
 #---- 3. Create FIPS code for TRI data ----
 ##---- Thinking process ----
 # The TRI data does not have FIPS codes, but rather state and county names
@@ -83,11 +76,11 @@ tri_clean <- tri_dat %>%
 # Then I match the TRI data with the FIPS code data, based on ST-CT code
 
 ##---- Add state code to TRI data ----
-tri_clean[,state := st]
+tri_sample[,state := st]
 fips[,fips := as.numeric(paste0(state_code,county_code))]
 
 st_code <- fips[,.N,c("state","state_code")][,c("state","state_code")][!(state %in% c("AS","GU", "MP", "PR", "VI", "UM"))]
-tri_clean <- tri_clean[st_code,on = "state"]
+tri_sample <- tri_sample[st_code,on = "state"]
 
 ##---- Create a state-county variable in TRI to match with FIPS ----
 ## The process is as follows:
@@ -97,8 +90,8 @@ tri_clean <- tri_clean[st_code,on = "state"]
 ## 4. Make changes to both and check the differences until the two match
 
 ## 1. Make a variable of TRI state-county and extract it
-tri_clean[, st_ct := paste0(st,"-",county)]
-tri_stct <- tri_clean[,.N,st_ct][,st_ct]
+tri_sample[, st_ct := paste0(st,"-",county)]
+tri_stct <- tri_sample[,.N,st_ct][,st_ct]
 
 ## 2. Check the TRI state-county vector with FIPS state-county variable
 check_fips <- fips[,c("state","county","fips")][,county := str_to_upper(county)]
@@ -114,16 +107,16 @@ check_fips[,county := str_remove(check_fips$county, "\\.")]
 check_fips[,st_ct := str_remove(check_fips$st_ct, "\\.")]
 tri_stct <- str_remove(tri_stct, "\\.")
 
-tri_clean[,st_ct := str_remove(tri_clean$st_ct, "\\.")]
+tri_sample[,st_ct := str_remove(tri_sample$st_ct, "\\.")]
 
 ## Second adjustment: remove () and remove MUNICIPIO => 6 differences
 tri_stct <- str_remove(tri_stct,"[(]")
 tri_stct <- str_remove(tri_stct, "[)]")
 tri_stct <- str_remove(tri_stct, "\\b( MUNICIPIO)\\b")
 
-tri_clean[,st_ct := str_remove(tri_clean$st_ct, "[(]")]
-tri_clean[,st_ct := str_remove(tri_clean$st_ct, "[)]")]
-tri_clean[,st_ct := str_remove(tri_clean$st_ct, "\\b( MUNICIPIO)\\b")]
+tri_sample[,st_ct := str_remove(tri_sample$st_ct, "[(]")]
+tri_sample[,st_ct := str_remove(tri_sample$st_ct, "[)]")]
+tri_sample[,st_ct := str_remove(tri_sample$st_ct, "\\b( MUNICIPIO)\\b")]
 
 ## Third adjustment: manually change the var name
 tri_stct <- str_replace(tri_stct,"AK-SOUTHEAST FAIRBANKS CENSU$","AK-SOUTHEAST FAIRBANKS CENSUS AREA")
@@ -133,15 +126,15 @@ tri_stct <- str_replace(tri_stct,"NV-CARSON CITY CITY$","NV-CARSON CITY")
 tri_stct <- str_replace(tri_stct,"WI-JUNEAU BOROUGH$","WI-JUNEAU")
 tri_stct <- str_replace(tri_stct,"WI-ST CROIX ISLAND$","WI-ST CROIX")
 
-tri_clean[,st_ct := str_replace(tri_clean$st_ct,"AK-SOUTHEAST FAIRBANKS CENSU$","AK-SOUTHEAST FAIRBANKS CENSUS AREA")]
-tri_clean[,st_ct := str_replace(tri_clean$st_ct, "AK-ALEUTIANS WEST CENSUS ARE$","AK-ALEUTIANS WEST CENSUS AREA")]
-tri_clean[,st_ct := str_replace(tri_clean$st_ct, "AK-FAIRBANKS NORTH STAR BORO$","AK-FAIRBANKS NORTH STAR BOROUGH")]
-tri_clean[,st_ct := str_replace(tri_clean$st_ct, "NV-CARSON CITY CITY$","NV-CARSON CITY")]
-tri_clean[,st_ct := str_replace(tri_clean$st_ct, "WI-JUNEAU BOROUGH$","WI-JUNEAU")]
-tri_clean[,st_ct := str_replace(tri_clean$st_ct, "WI-ST CROIX ISLAND$","WI-ST CROIX")]
+tri_sample[,st_ct := str_replace(tri_sample$st_ct,"AK-SOUTHEAST FAIRBANKS CENSU$","AK-SOUTHEAST FAIRBANKS CENSUS AREA")]
+tri_sample[,st_ct := str_replace(tri_sample$st_ct, "AK-ALEUTIANS WEST CENSUS ARE$","AK-ALEUTIANS WEST CENSUS AREA")]
+tri_sample[,st_ct := str_replace(tri_sample$st_ct, "AK-FAIRBANKS NORTH STAR BORO$","AK-FAIRBANKS NORTH STAR BOROUGH")]
+tri_sample[,st_ct := str_replace(tri_sample$st_ct, "NV-CARSON CITY CITY$","NV-CARSON CITY")]
+tri_sample[,st_ct := str_replace(tri_sample$st_ct, "WI-JUNEAU BOROUGH$","WI-JUNEAU")]
+tri_sample[,st_ct := str_replace(tri_sample$st_ct, "WI-ST CROIX ISLAND$","WI-ST CROIX")]
 
-#---- 4. Merge TRI_clean with FIPS data ----
-tri_match <- check_fips[tri_clean, on = "st_ct"]
+#---- 4. Merge tri_sample with FIPS data ----
+tri_match <- check_fips[tri_sample, on = "st_ct"]
 tri_match[,carcinogen := ifelse(carcinogen == "YES",1,0)]
 tri_match[,pbt := ifelse(classification == "PBT",1,0)]
 tri_match[,carc_releases := carcinogen*total_releases]
@@ -152,9 +145,7 @@ tri_match[,carc_air := carcinogen*x5.1_fugitive_air]
 tri_match[,year_fips := paste0(year,"-",fips)]
 tri_match <- tri_match[,.(frs_id,state,county,fips,year,year_fips,carcinogen,pbt,x5.1_fugitive_air,
                           onsite_release_total,total_releases,carc_releases,pbt_releases,carc_pbt_releases,carc_air)]
-# tri_match[,id_year_fips := paste0(frs_id,"-",year_fips)]
-# tri_match[,.N,id_year_fips]
-# tri_match[,.N,frs_id]
+
 
 #---- 5. Collapse the tri_match by year_fips ----
 tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
@@ -170,3 +161,9 @@ colnames(tri_match_summary) <- c("year_fips","fugitive_air",
 
 tri_match_summary <- unique(tri_match[,.(year_fips,fips,state)], by = "year_fips")[tri_match_summary, on = "year_fips"]
 tri_match_summary <- tri_census[tri_match_summary, on = "fips"]
+tri_match_summary[,carc_per_area := carc_releases/aland_cou]
+summary(tri_match_summary[,carc_per_area]) #median = 0.000003
+
+# Export TRI data
+saveRDS(tri_match, file = paste0(wd,panel.folder,"tri_match.rds")) # Uncollapsed TRI data
+saveRDS(tri_match_summary, file = paste0(wd,panel.folder,"tri_summary.rds")) # Collapsed TRI data
