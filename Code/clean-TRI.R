@@ -165,5 +165,5 @@ tri_match_summary[,carc_per_area := carc_releases/aland_cou]
 summary(tri_match_summary[,carc_per_area]) #median = 0.000003
 
 # Export TRI data
-saveRDS(tri_match, file = paste0(wd,panel.folder,"tri_match.rds")) # Uncollapsed TRI data
-saveRDS(tri_match_summary, file = paste0(wd,panel.folder,"tri_summary.rds")) # Collapsed TRI data
+saveRDS(tri_match, file = paste0(wd,tri.folder,"tri_match.rds")) # Uncollapsed TRI data
+saveRDS(tri_match_summary, file = paste0(wd,panel.folder,"tri_match_sum.rds")) # Collapsed TRI data
