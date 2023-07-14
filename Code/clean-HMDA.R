@@ -60,6 +60,7 @@ hmda_match[,income := log(income)]
 hmda_match[,race := ifelse(derived_race == "White",1,2)]
 hmda_match[derived_race == "Joint", race := 3]
 hmda_match[derived_race == "Free Form Text Only", race := NA]
+hmda_match[,derived_race := NULL]
 
 hmda_match[derived_sex == "Female", derived_sex := 1]
 hmda_match[derived_sex == "Male", derived_sex := 2]
@@ -77,7 +78,7 @@ hmda_match[applicant_age == "8888", applicant_age := NA]
 hmda_match[applicant_age == "9999", applicant_age := NA]
 
 ## Change data into factor variables
-hmda_match[,derived_race := as.factor(derived_race)]
+hmda_match[,race := as.factor(race)]
 hmda_match[,derived_sex := as.factor(derived_sex)]
 hmda_match[,type_of_purchaser := as.factor(type_of_purchaser)]
 hmda_match[,applicant_race1 := as.factor(applicant_race1)]

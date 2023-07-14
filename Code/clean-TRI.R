@@ -1,4 +1,4 @@
-packages <- c("data.table","rgdal","tidyverse","stringr","ggplot2","haven","zipcodeR","readxl")
+packages <- c("data.table","rgdal","tidyverse","stringr","ggplot2","haven","zipcodeR","readxl","tigris")
 need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 
 lapply(need.install, install.packages, character.only=T)
@@ -57,7 +57,8 @@ tri_sample <- tri_dat %>%
   filter(classification != "Dioxin") %>%
   filter(total_releases > 0) %>%
 # filter(x5.1_fugitive_air>0& x5.2_stack_air>0 & x5.3_water==0 & x5.4_underground==0) %>% ## Select air pollution only
-  select(year, trifd,  frs_id, facility_name,  city, county, st, zip, chemical, latitude, longitude, 
+  select(year, trifd,  frs_id, facility_name,  city, county, st, zip, chemical, 
+         latitude, longitude, 
          industry_sector_code, primary_sic,  primary_naics, 
          clean_air_act_chemical, classification, 
          metal, metal_category, carcinogen, unit_of_measure, 
@@ -69,6 +70,7 @@ tri_sample <- tri_dat %>%
          total_releases,
          x8.6_treatment_on_site, 
          x8.7_treatment_off_site)
+
 #---- 3. Create FIPS code for TRI data ----
 ##---- Thinking process ----
 # The TRI data does not have FIPS codes, but rather state and county names
@@ -94,7 +96,7 @@ tri_sample[, st_ct := paste0(st,"-",county)]
 tri_stct <- tri_sample[,.N,st_ct][,st_ct]
 
 ## 2. Check the TRI state-county vector with FIPS state-county variable
-check_fips <- fips[,c("state","county","fips")][,county := str_to_upper(county)]
+check_fips <- fips[,c("state","county","fips","state_code")][,county := str_to_upper(county)]
 check_fips[,county := str_remove(check_fips$county, "\\b( COUNTY)\\b")]
 
 # 3-4. Find the differences and make adjustments
@@ -143,9 +145,8 @@ tri_match[,carc_pbt_releases := pbt*carcinogen*total_releases]
 tri_match[,carc_air := carcinogen*x5.1_fugitive_air]
 
 tri_match[,year_fips := paste0(year,"-",fips)]
-tri_match <- tri_match[,.(frs_id,state,county,fips,year,year_fips,carcinogen,pbt,x5.1_fugitive_air,
+tri_match <- tri_match[,.(frs_id,state,state_code,latitude,longitude,county,fips,year,year_fips,carcinogen,pbt,x5.1_fugitive_air,
                           onsite_release_total,total_releases,carc_releases,pbt_releases,carc_pbt_releases,carc_air)]
-
 
 #---- 5. Collapse the tri_match by year_fips ----
 tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
@@ -167,3 +168,4 @@ summary(tri_match_summary[,carc_per_area]) #median = 0.000003
 # Export TRI data
 saveRDS(tri_match, file = paste0(wd,tri.folder,"tri_match.rds")) # Uncollapsed TRI data
 saveRDS(tri_match_summary, file = paste0(wd,panel.folder,"tri_match_sum.rds")) # Collapsed TRI data
+
