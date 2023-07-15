@@ -33,3 +33,6 @@ setkey(census_tract, GEOID)
 census_tract[,census_tract := as.numeric(GEOID)]
 hmda_match[,census_tract := as.numeric(census_tract)]
 
+hmda_match[,var_county := var]
+
+

@@ -7,32 +7,82 @@ lapply(packages, library, character.only=T)
 #---- 1. HMDA sample ----
 hmda_match <- readRDS(paste0(wd,panel.folder,"hmda_match.rds"))
 
-#---- 2. TRI sample ----
-tri_match_sum <- readRDS(paste0(wd,panel.folder,"tri_match_sum.rds"))
+#---- 2. TRI data ----
+tri_match <- readRDS(paste0(wd,panel.folder,"tri_match.rds"))
 
-setkey(tri_match_sum, year_fips)
+setkey(tri_match, year_fips)
 setkey(hmda_match, year_fips)
 
-#---- 3. Create panel and run summary ----
-reg_panel <- merge(tri_match_sum, hmda_match, all.x = FALSE, by = "year_fips")
+#---- 3. Census Data and match with TRI ----
+county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUNTY.xlsx")))
+county_census[,fips := paste0(STATE,COUNTY)]
+
+## Collect needed variables
+tri_census <- county_census[,.(fips,POPDEN_COU, POP_COU,HOU_COU,ALAND_COU,
+                               ALAND_PCT_URB,POPPCT_URB,HOUPCT_URB)]
+tri_census[,fips := as.numeric(fips)]
+colnames(tri_census) <- str_to_lower(colnames(tri_census))
+## Census data will be matched with TRI data
+
+#---- 4. Summarise TRI to county level and create treatment variables----
+##---- Create main TRI releases variables ----
+tri_match[,carcinogen := ifelse(carcinogen == "YES",1,0)]
+tri_match[,pbt := ifelse(classification == "PBT",1,0)]
+tri_match[,carc_releases := carcinogen*total_releases]
+tri_match[,pbt_releases := pbt*total_releases]
+tri_match[,carc_pbt_releases := pbt*carcinogen*total_releases]
+tri_match[,carc_air := carcinogen*x5.1_fugitive_air]
+
+##---- Collapse the tri_match by year_fips ----
+tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
+                                       onsite_release_total,total_releases,
+                                       carc_releases,pbt_releases,carc_pbt_releases,carc_air),sum),
+                             by = year_fips]
+tri_match_mean <- tri_match[,lapply(.(carcinogen,pbt),mean),by = year_fips]
+tri_coulev <- tri_match_total[tri_match_mean, on = "year_fips"]
+
+colnames(tri_coulev) <- c("year_fips","fugitive_air",
+                                 "onsite_release_total","total_releases",
+                                 "carc_releases","pbt_releases","carc_pbt_releases","carc_air","carcinogen","pbt")
+
+tri_coulev <- unique(tri_match[,.(year_fips,fips,state)], by = "year_fips")[tri_coulev, on = "year_fips"]
+tri_coulev <- tri_census[tri_coulev, on = "fips"]
+
+
+##---- Update other county-level variables ----
+tri_coulev[,carc_per_area := carc_releases/aland_cou]
+tri_coulev[,carc_level := ifelse(carc_per_area > 0.00, 1, 0)]
+tri_coulev[,carc_air_pa := carc_air/aland_cou]
+tri_coulev[,carc_air_level := ifelse(carc_air_pa > 0, 1, 0)]
+
+## Make nfac_county: number of facilities in a county
+tri_match[,latlon_id := paste0(latitude," ",longitude)]
+nfac_county <- tri_match[,unique(latlon_id),fips][,.N,fips]
+tri_coulev <- tri_coulev[nfac_county, on = "fips"]
+tri_coulev[,nfac_county := N]
+
+#---- 5. Create panel and run summary ----
+reg_panel <- merge(tri_coulev, hmda_match, all.x = FALSE, by = "year_fips")
 setkey(reg_panel, year_fips)
 
-##---- Creat treatment variables ----
-reg_panel[,carc_air_pa := carc_air/aland_cou]
-reg_panel[,carc_air_level := ifelse(carc_air_pa > 0, 1, 0)]
-reg_panel[,carc_level := ifelse(carc_per_area > 0.00000, 1, 0)]
-# ][,carc_level := ifelse(carc_per_area == 0, 0, carc_level)]
-
 ##---- Take sample from reg_panel ----
-reg_panel_sampled <- reg_panel[sample(.N,4000000)]
+reg_panel19 <- reg_panel[year == 2019]
+reg_panel20 <- reg_panel[year == 2020]
+reg_panel_sampled <- reg_panel[sample(.N,5000000)]
+
+reg_panel_sampled[,.N,year]
+reg_panel_sampled[,.N,fips]
+reg_panel[,.N,fips]
 
 write_dta(reg_panel_sampled ,path = paste0(wd,panel.folder,"reg_panel_sampled.dta"))
 #write_dta(reg_panel,path = paste0(wd,panel.folder,"reg_panel.dta"))
-#write_dta(reg_panel18,path = paste0(wd,panel.folder,"reg_panel18.dta"))
-#write_dta(reg_panel21,path = paste0(wd,panel.folder,"reg_panel21.dta"))
+write_dta(reg_panel19,path = paste0(wd,panel.folder,"reg_panel19.dta"))
+write_dta(reg_panel20,path = paste0(wd,panel.folder,"reg_panel20.dta"))
 
 ##---- Run analysis ----
 summary(lm(rate_spread ~ carc_per_area + loan_to_value_ratio + income + loan_amount + aland_pct_urb, reg_panel))
 summary(lm(rate_spread ~ carc_level + race + loan_to_value_ratio + income + loan_amount + aland_pct_urb, reg_panel[carc_level != 2]))
 
 hist(reg_panel18[carc_level == 0][rate_spread > -2 & rate_spread < 2]$rate_spread)
+
+summary(reg_panel$carc_air_pa)

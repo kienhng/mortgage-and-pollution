@@ -8,9 +8,7 @@ tri2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
 tri2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
 tri2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
 tri2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
-
 fips <- as.data.table(read_dta(paste0(wd,census.folder,"/fips_code.dta")))
-county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUNTY.xlsx")))
 
 tri_dat <- rbind(tri2018,tri2019,tri2020,tri2021)
 
@@ -43,12 +41,6 @@ new_colnames <- str_replace_all(
 colnames(tri_dat) <- new_colnames
 
 #---- 2. Clean Data ----
-##---- Clean Census Data ----
-county_census[,fips := paste0(STATE,COUNTY)]
-tri_census <- county_census[,.(fips,POP_COU,HOU_COU,ALAND_COU,ALAND_PCT_URB,POPPCT_URB,HOUPCT_URB)]
-tri_census[,fips := as.numeric(fips)]
-colnames(tri_census) <- str_to_lower(colnames(tri_census))
-
 ##---- Sample selection from TRI data ----
 tri_sample <- tri_dat %>%
 #  filter(carcinogen == "YES") %>%
@@ -137,35 +129,10 @@ tri_sample[,st_ct := str_replace(tri_sample$st_ct, "WI-ST CROIX ISLAND$","WI-ST 
 
 #---- 4. Merge tri_sample with FIPS data ----
 tri_match <- check_fips[tri_sample, on = "st_ct"]
-tri_match[,carcinogen := ifelse(carcinogen == "YES",1,0)]
-tri_match[,pbt := ifelse(classification == "PBT",1,0)]
-tri_match[,carc_releases := carcinogen*total_releases]
-tri_match[,pbt_releases := pbt*total_releases]
-tri_match[,carc_pbt_releases := pbt*carcinogen*total_releases]
-tri_match[,carc_air := carcinogen*x5.1_fugitive_air]
 
 tri_match[,year_fips := paste0(year,"-",fips)]
-tri_match <- tri_match[,.(frs_id,state,state_code,latitude,longitude,county,fips,year,year_fips,carcinogen,pbt,x5.1_fugitive_air,
-                          onsite_release_total,total_releases,carc_releases,pbt_releases,carc_pbt_releases,carc_air)]
-
-#---- 5. Collapse the tri_match by year_fips ----
-tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
-                    onsite_release_total,total_releases,
-                    carc_releases,pbt_releases,carc_pbt_releases,carc_air),sum),by = year_fips]
-tri_match_mean <- tri_match[,lapply(.(carcinogen,pbt),mean),by = year_fips]
-
-## Create ready-to-match data including TRI and Census: tri_match_summary
-tri_match_summary <- tri_match_total[tri_match_mean, on = "year_fips"]
-colnames(tri_match_summary) <- c("year_fips","fugitive_air",
-                                 "onsite_release_total","total_releases",
-                                 "carc_releases","pbt_releases","carc_pbt_releases","carc_air","carcinogen","pbt")
-
-tri_match_summary <- unique(tri_match[,.(year_fips,fips,state)], by = "year_fips")[tri_match_summary, on = "year_fips"]
-tri_match_summary <- tri_census[tri_match_summary, on = "fips"]
-tri_match_summary[,carc_per_area := carc_releases/aland_cou]
-summary(tri_match_summary[,carc_per_area]) #median = 0.000003
+tri_match <- tri_match[,.(frs_id,state,state_code,latitude,longitude,county,fips,year,year_fips,carcinogen,classification,x5.1_fugitive_air,
+                          onsite_release_total,total_releases)]
 
 # Export TRI data
-saveRDS(tri_match, file = paste0(wd,tri.folder,"tri_match.rds")) # Uncollapsed TRI data
-saveRDS(tri_match_summary, file = paste0(wd,panel.folder,"tri_match_sum.rds")) # Collapsed TRI data
-
+saveRDS(tri_match, file = paste0(wd,panel.folder,"tri_match.rds")) # Uncollapsed TRI data
