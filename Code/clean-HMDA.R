@@ -43,16 +43,16 @@ for (i in 1:4) {
                                                # Binning variables into deciles
                                                ][,loan_to_value_ratio := loan_to_value_ratio + rnorm(length(loan_to_value_ratio)) * 1e-10
                                                ][,dec_loan_to_value := cut(loan_to_value_ratio,
-                                                                           quantile(loan_to_value_ratio,probs=seq(0,1,by=0.1)),
+                                                                           quantile(loan_to_value_ratio,probs=seq(1,0,by=-0.1)),
                                                                            include.lowest=T,labels=F)
                                                ][,dec_income := cut(income, 
-                                                                    quantile(income,probs=seq(0,1,by=0.1)),
+                                                                    quantile(income,probs=seq(1,0,by=-0.1)),
                                                                     include.lowest=T,labels=F)
                                                ][,dec_property_value := cut(property_value,
-                                                                            quantile(property_value,probs=seq(0,1,by=0.1)),
+                                                                            quantile(property_value,probs=seq(1,0,by=-0.1)),
                                                                             include.lowest=T,labels=F)
                                                ][,dec_loan_to_income := cut(loan_to_income, 
-                                                                            quantile(loan_to_income,probs=seq(0,1,by=0.1)),
+                                                                            quantile(loan_to_income,probs=seq(1,0,by=-0.1)),
                                                                             include.lowest=T,labels=F)]
 }
 
@@ -69,7 +69,8 @@ setkey(hmda_cl, year_fips)
 
 ## Wrangling HMDA data
 hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread,
-                         applicant_race1,derived_sex,applicant_age,
+                         applicant_race1,applicant_age,
+                         #derived_sex,
                          loan_amount,
                          loan_to_value_ratio,dec_loan_to_value,
                          property_value,dec_property_value,
@@ -83,10 +84,10 @@ hmda_match[applicant_race1 == "Joint", race := 3]
 hmda_match[applicant_race1 == "Free Form Text Only", race := NA]
 hmda_match[,applicant_race1 := NULL]
 
-hmda_match[derived_sex == "Female", derived_sex := 1]
-hmda_match[derived_sex == "Male", derived_sex := 2]
-hmda_match[derived_sex == "Joint", derived_sex := 3]
-hmda_match[derived_sex == "Sex Not Available", derived_sex := NA]
+# hmda_match[derived_sex == "Female", derived_sex := 1]
+# hmda_match[derived_sex == "Male", derived_sex := 2]
+# hmda_match[derived_sex == "Joint", derived_sex := 3]
+# hmda_match[derived_sex == "Sex Not Available", derived_sex := NA]
 
 hmda_match[applicant_age == "<25", applicant_age := 1]
 hmda_match[applicant_age == "25-34", applicant_age := 2]
@@ -107,4 +108,3 @@ hmda_match[,purpose := as.factor(purpose)]
 # Export HMDA sample
 saveRDS(hmda_match,file = paste0(wd,hmda.folder,"hmda_match.rds"))
 saveRDS(hmda_cl,file = paste0(wd,hmda.folder,"hmda_clean.rds"))
-
