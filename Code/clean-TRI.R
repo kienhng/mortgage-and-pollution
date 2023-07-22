@@ -51,7 +51,7 @@ tri_clean <- tri_dat %>%
   filter(total_releases > 0) %>%
   select(year, trifd,  frs_id, facility_name,  city, county, st, zip, chemical, 
          latitude, longitude, 
-         industry_sector_code, primary_sic,  primary_naics, 
+         industry_sector_code,  primary_naics, 
          clean_air_act_chemical, classification, 
          metal, metal_category, carcinogen, unit_of_measure, 
          x5.1_fugitive_air,  x5.2_stack_air, x5.3_water, x5.4_underground,
@@ -130,6 +130,7 @@ tri_match <- check_fips[tri_clean, on = "st_ct"]
 
 tri_match[,year_fips := paste0(year,"-",fips)]
 tri_match <- tri_match[,.(frs_id,state,state_code,latitude,longitude,county,fips,year,year_fips,
+                          industry_sector_code, primary_sic,  primary_naics, 
                           carcinogen,
                           classification,
                           x5.1_fugitive_air,

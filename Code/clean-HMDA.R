@@ -63,11 +63,12 @@ hmda2021_cl <- new_list[[4]]
 
 ## Create subset of HMDA
 hmda_cl <- rbind(hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
+rm(hmda2018,hmda2019,hmda2020,hmda2021)
 hmda_cl[,year_fips := paste0(year,"-",st_cnty_fips)]
 setkey(hmda_cl, year_fips)
 
 ## Wrangling HMDA data
-hmda_match <- hmda_cl[,.(year,year_fips,rate_spread,us30_spread,
+hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread,
                          applicant_race1,derived_sex,applicant_age,
                          loan_amount,
                          loan_to_value_ratio,dec_loan_to_value,
@@ -106,3 +107,4 @@ hmda_match[,purpose := as.factor(purpose)]
 # Export HMDA sample
 saveRDS(hmda_match,file = paste0(wd,hmda.folder,"hmda_match.rds"))
 saveRDS(hmda_cl,file = paste0(wd,hmda.folder,"hmda_clean.rds"))
+

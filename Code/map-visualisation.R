@@ -1,33 +1,9 @@
-#-------------------------------------------------------------------------------
-#                            Data Visualization
-#-------------------------------------------------------------------------------
+packages <- c("usmap","ggplot2","dplyr")
+need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 
-# Transform data into spatial format
-c2018_transformed <- usmap_transform(clean_2018
-                                     ,input_names = c("longitude", "latitude")
-                                     ,output_names = c("x", "y"))
+lapply(need.install,install.packages,character.only=T)
+lapply(packages,library,character.only=T)
 
-us_pop <- get_estimates(geography = "state", product = "population")
-colnames(us_pop) <- c("county", "fips", "variable", "population")
+tri_yearfips <- readRDS(file=paste0(wd,panel.folder,"tri_yearfips.rds"))
 
-plot_usmap(regions = "state", 
-           data = us_pop, 
-           values = "population",
-           color = "white") +
-  scale_color_gradient2(low = "red", 
-                        mid = "white", 
-                        high = "blue", 
-                        midpoint = median(us_pop$population)) +
-  geom_point(data = c2018_transformed, 
-             aes(x = x, y = y, size = x5.2_stack_air),
-             color = "yellow",
-             alpha = 0.25)
-#geom_point(data = c2018_transformed,
-#          aes(x = x, y = y, size = x5.3_water),
-#         color = "blue",
-#        alpha = 0.25)
-
-# FIPS codes data
-fips <- raw_fipscode %>%
-  mutate(fips = str_c(state_code, county_code)) %>%
-  select(state, county, fips)
+tri_yearfips <- tri_yearfips[,.(fips,state,f)]
