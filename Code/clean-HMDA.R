@@ -33,6 +33,7 @@ new_list <- list(1:4)
 
 for (i in 1:4) {
   new_list[[i]] <- raw_list[[i]][loan_term == 360
+                                 ][,loan_to_value_ratio := loan_amount/property_value
                                  ][loan_to_value_ratio > 0 & loan_to_value_ratio < 100.001
                                    ][rate_spread > -4 & rate_spread < 4
                                      ][interest_rate < 15
@@ -41,7 +42,10 @@ for (i in 1:4) {
                                              # New variable loan_to_income
                                              ][,loan_to_income := loan_amount/income
                                                # Binning variables into deciles
-                                               ][,loan_to_value_ratio := loan_to_value_ratio + rnorm(length(loan_to_value_ratio)) * 1e-10
+                                             ][,dec_loan_amount := cut(loan_amount,
+                                                                       quantile(loan_amount,probs=seq(1,0,by=-0.1)),
+                                                                       include.lowest=T,labels=F)
+                                               ][,loan_to_value_ratio := loan_to_value_ratio + rnorm(length(loan_to_value_ratio))*1e-10
                                                ][,dec_loan_to_value := cut(loan_to_value_ratio,
                                                                            quantile(loan_to_value_ratio,probs=seq(1,0,by=-0.1)),
                                                                            include.lowest=T,labels=F)
@@ -71,7 +75,7 @@ setkey(hmda_cl, year_fips)
 hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread,
                          applicant_race1,applicant_age,
                          #derived_sex,
-                         loan_amount,
+                         loan_amount,dec_loan_amount,
                          loan_to_value_ratio,dec_loan_to_value,
                          property_value,dec_property_value,
                          income,dec_income,
@@ -101,7 +105,7 @@ hmda_match[applicant_age == "9999", applicant_age := NA]
 
 ## Change data into factor variables
 hmda_match[,race := as.factor(race)]
-hmda_match[,derived_sex := as.factor(derived_sex)]
+# hmda_match[,derived_sex := as.factor(derived_sex)]
 hmda_match[,applicant_age := as.factor(applicant_age)]
 hmda_match[,purpose := as.factor(purpose)]
 
