@@ -9,7 +9,6 @@ hmda_match <- readRDS(paste0(wd,hmda.folder,"hmda_match.rds"))
 
 #---- 2. TRI data ----
 tri_match <- readRDS(paste0(wd,tri.folder,"tri_match.rds"))
-
 setkey(tri_match, year_fips)
 setkey(hmda_match, year_fips)
 
@@ -73,16 +72,16 @@ tri_coulev[,carc_pa := carc_releases/aland_cou]
 tri_coulev[,carc_air_pa := carc_air/aland_cou]
 
 ##---- Log transformation ----
-tri_coulev[,total_releases := log(total_releases+1)]
-tri_coulev[,onsite_release_total := log(onsite_release_total+1)]
-tri_coulev[,offsite_release_total := log(offsite_release_total+1)]
+tri_coulev[,ln_total_releases := log(total_releases+1)]
+tri_coulev[,ln_onsite_release_total := log(onsite_release_total+1)]
+tri_coulev[,ln_offsite_release_total := log(offsite_release_total+1)]
 
-tri_coulev[,carc_releases := log(carc_releases+1)]
-tri_coulev[,carc_onsite := log(carc_onsite+1)]
-tri_coulev[,carc_offsite := log(carc_offsite+1)]
+tri_coulev[,ln_carc_releases := log(carc_releases+1)]
+tri_coulev[,ln_carc_onsite := log(carc_onsite+1)]
+tri_coulev[,ln_carc_offsite := log(carc_offsite+1)]
 
-tri_coulev[,air_releases := log(air_releases+1)]
-tri_coulev[,carc_air := log(carc_air+1)]
+tri_coulev[,ln_air_releases := log(air_releases+1)]
+tri_coulev[,ln_carc_air := log(carc_air+1)]
 
 ## Make nfac_county: number of facilities in a county
 tri_match[,latlon_id := paste0(latitude," ",longitude)]
@@ -95,8 +94,8 @@ reg_panel <- merge(hmda_match, tri_coulev, all.x = FALSE, by = "year_fips")
 setkey(reg_panel, year_fips)
 
 ##---- Take sample from reg_panel ----
-reg_panel_sampled1 <- reg_panel[sample(.N,500000)]
+reg_panel_sampled <- reg_panel[sample(.N,500000)]
 
 #---- 6. Export data ----
 saveRDS(tri_coulev,file=paste0(wd,panel.folder,"tri_yearfips.rds"))
-write_dta(reg_panel_sampled1 ,path = paste0(wd,panel.folder,"reg_panel_sampled1.dta"))
+write_dta(reg_panel_sampled ,path = paste0(wd,panel.folder,"reg_panel_sampled.dta"))

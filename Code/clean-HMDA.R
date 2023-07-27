@@ -22,11 +22,17 @@ load(paste0(wd,hmda.folder,"hmda2021.RData"))
 lapply(list(hmda2018,hmda2019,hmda2020,hmda2021), as.data.table)
 
 #---- Subset HMDA data ----
-## Create the second outcome variable
+## Create the outcome variable based on US30 yield
 hmda2018[,us30_spread := interest_rate - US30Y.2018]
 hmda2019[,us30_spread := interest_rate - US30Y.2019]
 hmda2020[,us30_spread := interest_rate - US30Y.2020]
 hmda2021[,us30_spread := interest_rate - US30Y.2021]
+
+## Create the variable for FHFA conforming loan limit value
+hmda2018[,over_conflimit := ifelse((loan_amount-CONF.LOAN.LIMIT.2018)>0,2,1)]
+hmda2019[,over_conflimit := ifelse((loan_amount-CONF.LOAN.LIMIT.2019)>0,2,1)]
+hmda2020[,over_conflimit := ifelse((loan_amount-CONF.LOAN.LIMIT.2020)>0,2,1)]
+hmda2021[,over_conflimit := ifelse((loan_amount-CONF.LOAN.LIMIT.2021)>0,2,1)]
 
 raw_list <- list(hmda2018,hmda2019,hmda2020,hmda2021)
 new_list <- list(1:4)
@@ -67,7 +73,7 @@ hmda2021_cl <- new_list[[4]]
 
 ## Create subset of HMDA
 hmda_cl <- rbind(hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
-rm(hmda2018,hmda2019,hmda2020,hmda2021)
+rm(raw_list,hmda2018,hmda2019,hmda2020,hmda2021,hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
 hmda_cl[,year_fips := paste0(year,"-",st_cnty_fips)]
 setkey(hmda_cl, year_fips)
 
@@ -80,7 +86,8 @@ hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread
                          property_value,dec_property_value,
                          income,dec_income,
                          loan_to_income,dec_loan_to_income,
-                         purpose)]
+                         purpose,
+                         over_conflimit)]
 
 ## Relabel data
 hmda_match[,race := ifelse(applicant_race1 == "White",1,2)]
@@ -108,6 +115,7 @@ hmda_match[,race := as.factor(race)]
 # hmda_match[,derived_sex := as.factor(derived_sex)]
 hmda_match[,applicant_age := as.factor(applicant_age)]
 hmda_match[,purpose := as.factor(purpose)]
+hmda_match[,over_conflimit := as.factor(over_conflimit)]
 
 # Export HMDA sample
 saveRDS(hmda_match,file = paste0(wd,hmda.folder,"hmda_match.rds"))
