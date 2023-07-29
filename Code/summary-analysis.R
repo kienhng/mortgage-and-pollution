@@ -6,11 +6,12 @@ lapply(packages, library, character.only=T)
 
 ## Cheking propensity score
 
-reg_panel <- as.data.table(read_dta(paste0(wd,panel.folder,"reg_panel_sampled1.dta")))
+reg_sample <- as.data.table(read_dta(paste0(wd,panel.folder,"reg_panel_sampled.dta")))
 
-reg_panel[,carc_re2level := ifelse(carc_releases == 0,0,1)]
-reg_panel[,carc_re2level := ifelse(is.na(carc_re2level)==T,0,carc_re2level)]
-reg_panel[,.N,.(carc_re2level,region)][order(region)]
-reg_panel[region == ""]
+reg_sample[,carc_2level := ifelse(carc_releases > 0 & aland_cou/(effect_5km*0.9) > 1, 1,0)]
+t.test(reg_sample[carc_2level == 1][,rate_spread], reg_sample[carc_2level == 0][,rate_spread])
 
-carc_re2level_extreme total_releases dec_income dec_property_value dec_loan_to_income
+reg_panel[,.N,nfac_county][order(nfac_county)]
+reg_panel[,avg_release_county := carc_releases/nfac_county]
+
+reg_panel[,mean(avg_release_county),nfac_county][order(V1)]

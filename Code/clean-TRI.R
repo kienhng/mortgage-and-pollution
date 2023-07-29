@@ -49,7 +49,7 @@ tri_clean <- tri_dat %>%
   filter(classification != "Dioxin") %>%
   filter(is.na(total_releases)==F) %>%
   filter(total_releases > 0) %>%
-  select(year, trifd,  frs_id, facility_name,  city, county, st, zip, chemical, 
+  select(year, trifd, facility_name,  city, county, st, zip, chemical, 
          latitude, longitude, 
          industry_sector_code,  primary_naics, 
          clean_air_act_chemical, classification, 
@@ -58,8 +58,6 @@ tri_clean <- tri_dat %>%
          onsite_release_total, 
          offsite_release_total, 
          total_releases)
-##---- Remove outliers ----
-
 
 #---- 3. Create FIPS code for TRI data ----
 ##---- Thinking process ----
@@ -129,7 +127,7 @@ tri_clean[,st_ct := str_replace(tri_clean$st_ct, "WI-ST CROIX ISLAND$","WI-ST CR
 tri_match <- check_fips[tri_clean, on = "st_ct"]
 
 tri_match[,year_fips := paste0(year,"-",fips)]
-tri_match <- tri_match[,.(frs_id,state,state_code,latitude,longitude,county,fips,year,year_fips,
+tri_match <- tri_match[,.(trifd,state,state_code,latitude,longitude,county,fips,year,year_fips,
                           industry_sector_code, primary_sic,  primary_naics, 
                           carcinogen,
                           classification,
@@ -138,6 +136,8 @@ tri_match <- tri_match[,.(frs_id,state,state_code,latitude,longitude,county,fips
                           onsite_release_total,
                           offsite_release_total,
                           total_releases)]
+
+##---- Remove outliers ----
 
 # Export TRI data
 saveRDS(tri_clean, file = paste0(wd,tri.folder,"tri_clean.rds")) # Full cleaned data

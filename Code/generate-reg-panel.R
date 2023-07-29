@@ -84,17 +84,29 @@ tri_coulev[,ln_air_releases := log(air_releases+1)]
 tri_coulev[,ln_carc_air := log(carc_air+1)]
 
 ## Make nfac_county: number of facilities in a county
-tri_match[,latlon_id := paste0(latitude," ",longitude)]
+tri_match[,latlon_id := paste0(latitude,longitude)]
 nfac_county <- tri_match[,unique(latlon_id),fips][,.N,fips]
 tri_coulev <- tri_coulev[nfac_county, on = "fips"]
 tri_coulev[,nfac_county := N]
+tri_coulev[,N := NULL]
+
+## Make nfac_carc_county: number of facilities in a county release carcinogenic waste
+nfac_carc_county <- tri_match[carcinogen == 1][,unique(latlon_id),fips][,.N,fips]
+tri_coulev <- tri_coulev[nfac_carc_county, on = "fips"]
+tri_coulev[,nfac_carc_county := N]
+
+## Create effect area of all facilities in a county
+tri_coulev[,effect_1km := nfac_carc_county*RADIUS.1KM]
+tri_coulev[,effect_5km := nfac_carc_county*RADIUS.5KM]
+tri_coulev[,effect_10km := nfac_carc_county*RADIUS.10KM]
+tri_coulev[,effect_20km := nfac_carc_county*RADIUS.20KM]
 
 #---- 5. Create panel ----
 reg_panel <- merge(hmda_match, tri_coulev, all.x = FALSE, by = "year_fips")
 setkey(reg_panel, year_fips)
 
 ##---- Take sample from reg_panel ----
-reg_panel_sampled <- reg_panel[sample(.N,500000)]
+reg_panel_sampled <- reg_panel[sample(.N,1000000)]
 
 #---- 6. Export data ----
 saveRDS(tri_coulev,file=paste0(wd,panel.folder,"tri_yearfips.rds"))
