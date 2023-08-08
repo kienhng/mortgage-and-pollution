@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: mortgage-pollution.aux
+Reallocating 'name_of_file' (item size: 1) to 4 items.
+The style file: apa.bst
+Reallocating 'name_of_file' (item size: 1) to 18 items.
+Database file #1: mortgage-polution.bib
+You've used 2 entries,
+            1940 wiz_defined-function locations,
+            483 strings with 4054 characters,
+and the built_in function-call counts, 600 in all, are:
+= -- 54
+> -- 25
+< -- 1
++ -- 8
+- -- 8
+* -- 46
+:= -- 117
+add.period$ -- 5
+call.type$ -- 2
+change.case$ -- 13
+chr.to.int$ -- 2
+cite$ -- 2
+duplicate$ -- 24
+empty$ -- 39
+format.name$ -- 10
+if$ -- 109
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 2
+newline$ -- 12
+num.names$ -- 6
+pop$ -- 15
+preamble$ -- 1
+purify$ -- 14
+quote$ -- 0
+skip$ -- 19
+stack$ -- 0
+substring$ -- 24
+swap$ -- 3
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 10
+warning$ -- 0
+while$ -- 4
+width$ -- 0
+write$ -- 24
