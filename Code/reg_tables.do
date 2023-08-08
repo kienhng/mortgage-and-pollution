@@ -66,7 +66,7 @@ set more off
 	// Then I make table of them
 	
 	esttab reg1 reg2 reg3 reg4 ///
-		using "Writing/tables.rtf", ///
+		using "Writing/tab-exp.tex", ///
 		eqlabels("") ///
 		title(Example tables \label{tab-exp}) ///
 		label b(3) se nogaps nodep star(* 0.10 ** 0.05 *** 0.01) ///
