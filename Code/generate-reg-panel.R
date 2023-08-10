@@ -13,15 +13,18 @@ setkey(tri_match, year_fips)
 setkey(hmda_match, year_fips)
 
 #---- 3. Census Data ----
+## Census data will be matched with the final full_panel
 county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUNTY.xlsx")))
 county_census[,fips := paste0(STATE,COUNTY)]
 
-## Collect needed variables
-census_dat <- county_census[,.(fips,REGION,POPDEN_COU, POP_COU,HOU_COU,ALAND_COU,
+## Collect needed variables in Census Data
+census_dat <- county_census[,.(fips,REGION,POPDEN_COU,POP_COU,HOU_COU,ALAND_COU,
                                ALAND_PCT_URB,POPPCT_URB,HOUPCT_URB)]
-census_dat[,fips := as.numeric(fips)]
 colnames(census_dat) <- str_to_lower(colnames(census_dat))
-## Census data will be matched with the final full_panel
+
+## Transform variables
+census_dat[,fips := as.numeric(fips)]
+census_dat[,aland_cou_sqkm:= aland_cou/1000000]
 
 #---- 4. Summarise TRI to county level and create treatment variables----
 ##---- Create main TRI releases variables ----
@@ -30,20 +33,16 @@ tri_match[,pbt := ifelse(classification == "PBT",1,0)]
 
 tri_match[,carc_releases := carcinogen*total_releases]
 tri_match[,carc_onsite := carcinogen*onsite_release_total]
-tri_match[,carc_offsite := carcinogen*offsite_release_total]
-
-# tri_match[,pbt_releases := pbt*total_releases]
-# tri_match[,carc_pbt_releases := pbt*carcinogen*total_releases]
 
 tri_match[,air_releases := x5.1_fugitive_air + x5.2_stack_air]
 tri_match[,carc_air := carcinogen*air_releases]
 
 ##---- Collapse the tri_match by year_fips ----
 tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
-                                       onsite_release_total,offsite_release_total,
+                                       onsite_release_total,
                                        total_releases,
                                        carc_releases,
-                                       carc_onsite,carc_offsite,
+                                       carc_onsite,
                                        air_releases,
                                        carc_air),sum),
                              by = year_fips]
@@ -55,10 +54,10 @@ tri_coulev <- tri_match_total[tri_match_mean, on = "year_fips"]
 tri_coulev <- tri_coulev[tri_match_median, on = "year_fips"]
 
 colnames(tri_coulev) <- c("year_fips","fugitive_air",
-                          "onsite_release_total","offsite_release_total",
+                          "onsite_release_total",
                           "total_releases",
                           "carc_releases",
-                          "carc_onsite","carc_offsite",
+                          "carc_onsite",
                           "air_releases",
                           "carc_air",
                           "carcinogen","pbt",
@@ -66,15 +65,13 @@ colnames(tri_coulev) <- c("year_fips","fugitive_air",
 
 tri_coulev <- unique(tri_match[,.(year_fips,fips,state)], by = "year_fips")[tri_coulev, on = "year_fips"]
 
-##---- Update county-level variables ----
+##---- Update county-level variables related to total_releases ----
 ##---- Log transformation ----
 tri_coulev[,ln_total_releases := log(total_releases+1)]
 tri_coulev[,ln_onsite_release_total := log(onsite_release_total+1)]
-tri_coulev[,ln_offsite_release_total := log(offsite_release_total+1)]
 
 tri_coulev[,ln_carc_releases := log(carc_releases+1)]
 tri_coulev[,ln_carc_onsite := log(carc_onsite+1)]
-tri_coulev[,ln_carc_offsite := log(carc_offsite+1)]
 
 tri_coulev[,ln_air_releases := log(air_releases+1)]
 tri_coulev[,ln_carc_air := log(carc_air+1)]
@@ -136,6 +133,8 @@ full_panel[,fips := as.numeric(fips)]
 full_panel <- merge(full_panel,census_dat,all.x = TRUE, by = "fips")
 gc()
 
+census_dat[,aland_cou_sqkm:= aland_cou/1000000]
+
 ##---- Take sample from full_panel ----
 sampled_panel <- full_panel[sample(.N,500000)]
 
@@ -143,3 +142,4 @@ sampled_panel <- full_panel[sample(.N,500000)]
 saveRDS(tri_coulev,file=paste0(wd,panel.folder,"tri_yearfips.rds"))
 saveRDS(full_panel,file=paste0(wd,panel.folder,"full_panel.rds"))
 write_dta(sampled_panel ,path = paste0(wd,panel.folder,"sampled_panel.dta"))
+

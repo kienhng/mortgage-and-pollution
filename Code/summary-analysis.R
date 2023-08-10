@@ -6,12 +6,20 @@ lapply(packages, library, character.only=T)
 
 ## Cheking propensity score
 
-reg_sample <- as.data.table(read_dta(paste0(wd,panel.folder,"reg_panel_sampled.dta")))
+sampled_panel <- as.data.table(read_dta(paste0(wd,panel.folder,"sampled_panel.dta")))
+full_panel <- readRDS(file=paste0(wd,panel.folder,"full_panel.rds"))
 
-reg_sample[,carc_2level := ifelse(carc_releases > 0 & aland_cou/(effect_5km*0.9) > 1, 1,0)]
-t.test(reg_sample[carc_2level == 1][,rate_spread], reg_sample[carc_2level == 0][,rate_spread])
+full_panel[,carc_2level := ifelse(carc_releases > 0 & effect_10km > aland_cou, 1,0)]
+full_panel[,.N,carc_2level]
 
-reg_panel[,.N,nfac_county][order(nfac_county)]
-reg_panel[,avg_release_county := carc_releases/nfac_county]
+sampled_panel
 
-reg_panel[,mean(avg_release_county),nfac_county][order(V1)]
+normlised_control <- full_panel[dec_property_value == 1][dec_income == 1][dec_loan_to_value == 1][race == 1][carc_2level == 0][,rate_spread]
+normlised_treatment <- full_panel[dec_property_value == 1][dec_income == 1][dec_loan_to_value == 1][race == 1][carc_2level == 1][,rate_spread]
+
+t.test(normlised_control,normlised_treatment)
+
+full_panel[,radius_check := sqrt(aland_cou/pi)]
+summary(full_panel[,radius_check])
+
+full_panel[is.na(aland_cou)]
