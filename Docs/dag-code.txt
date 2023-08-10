@@ -1,0 +1,18 @@
+dag {
+"Buy a home near factory" [latent,pos="-0.683,-0.619"]
+"County Size" [pos="-1.304,-1.164"]
+"Credit and Demographic factor" [pos="0.385,-1.229"]
+"Exposure to Toxic Waste" [exposure,pos="-1.294,0.075"]
+"Health risk and Health cost" [pos="-0.496,0.057"]
+"Mortgage Rate Spread" [outcome,pos="0.375,0.066"]
+"Number of facilities" [pos="-1.485,-0.633"]
+"Population Density" [pos="-0.673,-1.267"]
+"Buy a home near factory" -> "Exposure to Toxic Waste"
+"County Size" -> "Buy a home near factory"
+"Credit and Demographic factor" -> "Buy a home near factory"
+"Credit and Demographic factor" -> "Mortgage Rate Spread"
+"Exposure to Toxic Waste" -> "Health risk and Health cost"
+"Health risk and Health cost" -> "Mortgage Rate Spread"
+"Number of facilities" -> "Buy a home near factory"
+"Population Density" -> "Buy a home near factory"
+}
