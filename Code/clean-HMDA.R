@@ -83,10 +83,11 @@ hmda2021_cl <- new_list[[4]]
 
 ## Create subset of HMDA
 hmda_cl <- rbind(hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
-rm(raw_list,hmda2018,hmda2019,hmda2020,hmda2021,hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
+rm(new_list,raw_list,hmda2018,hmda2019,hmda2020,hmda2021,hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
+gc()
+
 hmda_cl[,year_fips := paste0(year,"-",st_cnty_fips)]
 setkey(hmda_cl, year_fips)
-gc()
 ## Wrangling HMDA data
 hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread,
                          applicant_race1,applicant_age,
@@ -100,11 +101,14 @@ hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread
                          over_conflimit)]
 
 ## Relabel data
-hmda_match[,race := 4]
-hmda_match[applicant_race1 == 5, race := 1]
+hmda_match[,race := 1]
 hmda_match[applicant_race1 %in% c(2,21,22,23,24,25,26,27), race := 2]
 hmda_match[applicant_race1 == 3, race := 3]
+hmda_match[applicant_race1 %in% c(4,41,42,43,44), race := 4]
+hmda_match[applicant_race1 == 5, race := 5]
+hmda_match[applicant_race1 %in% c(6,7), race := NA]
 hmda_match[is.na(applicant_race1),race := NA]
+
 hmda_match[,applicant_race1 := NULL]
 
 # hmda_match[derived_sex == "Female", derived_sex := 1]
@@ -112,23 +116,23 @@ hmda_match[,applicant_race1 := NULL]
 # hmda_match[derived_sex == "Joint", derived_sex := 3]
 # hmda_match[derived_sex == "Sex Not Available", derived_sex := NA]
 
-hmda_match[applicant_age == "<25", applicant_age := 1]
-hmda_match[applicant_age == "25-34", applicant_age := 2]
-hmda_match[applicant_age == "35-44", applicant_age := 3]
-hmda_match[applicant_age == "45-54", applicant_age := 4]
-hmda_match[applicant_age == "55-64", applicant_age := 5]
-hmda_match[applicant_age == "65-74", applicant_age := 6]
-hmda_match[applicant_age == ">74", applicant_age := 7]
-hmda_match[applicant_age == "8888", applicant_age := NA]
-hmda_match[applicant_age == "9999", applicant_age := NA]
+hmda_match[applicant_age == "<25", age := 1]
+hmda_match[applicant_age == "25-34", age := 2]
+hmda_match[applicant_age == "35-44", age := 3]
+hmda_match[applicant_age == "45-54", age := 4]
+hmda_match[applicant_age == "55-64", age := 5]
+hmda_match[applicant_age == "65-74", age := 6]
+hmda_match[applicant_age == ">74", age := 7]
+hmda_match[applicant_age == "8888", age := NA]
+hmda_match[applicant_age == "9999", age := NA]
+hmda_match[,applicant_age := NULL]
 
 ## Change data into factor variables
 hmda_match[,race := as.factor(race)]
-hmda_match[,applicant_age := as.factor(applicant_age)]
+hmda_match[,age := as.factor(age)]
 hmda_match[,purpose := as.factor(purpose)]
 hmda_match[,over_conflimit := as.factor(over_conflimit)]
 
 # Export HMDA sample
 saveRDS(hmda_match,file = paste0(wd,hmda.folder,"hmda_match.rds"))
 saveRDS(hmda_cl,file = paste0(wd,hmda.folder,"hmda_clean.rds"))
-
