@@ -59,6 +59,8 @@ tri_clean <- tri_dat %>%
          offsite_release_total, 
          total_releases)
 
+tri_dat[,chemical][!(tri_dat[year == 2018][,chemical] %in% tri_dat[year == 2021][,chemical])]
+
 #---- 3. Create FIPS code for TRI data ----
 ##---- Thinking process ----
 # The TRI data does not have FIPS codes, but rather state and county names
@@ -128,16 +130,13 @@ tri_match <- check_fips[tri_clean, on = "st_ct"]
 
 tri_match[,year_fips := paste0(year,"-",fips)]
 tri_match <- tri_match[,.(trifd,state,state_code,latitude,longitude,county,fips,year,year_fips,
-                          industry_sector_code, primary_sic,  primary_naics, 
+                          industry_sector_code,primary_naics, 
                           carcinogen,
                           classification,
                           x5.1_fugitive_air,
                           x5.2_stack_air,
                           onsite_release_total,
-                          offsite_release_total,
                           total_releases)]
-
-##---- Remove outliers ----
 
 # Export TRI data
 saveRDS(tri_clean, file = paste0(wd,tri.folder,"tri_clean.rds")) # Full cleaned data

@@ -12,21 +12,7 @@ tri_match <- readRDS(paste0(wd,tri.folder,"tri_match.rds"))
 setkey(tri_match, year_fips)
 setkey(hmda_match, year_fips)
 
-#---- 3. Census Data ----
-## Census data will be matched with the final full_panel
-county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUNTY.xlsx")))
-county_census[,fips := paste0(STATE,COUNTY)]
-
-## Collect needed variables in Census Data
-census_dat <- county_census[,.(fips,REGION,POPDEN_COU,POP_COU,HOU_COU,ALAND_COU,
-                               ALAND_PCT_URB,POPPCT_URB,HOUPCT_URB)]
-colnames(census_dat) <- str_to_lower(colnames(census_dat))
-
-## Transform variables
-census_dat[,fips := as.numeric(fips)]
-census_dat[,aland_cou_sqkm:= aland_cou/1000000]
-
-#---- 4. Summarise TRI to county level and create treatment variables----
+#---- 3. Summarise TRI to county level and create treatment variables----
 ##---- Create main TRI releases variables ----
 tri_match[,carcinogen := ifelse(carcinogen == "YES",1,0)]
 tri_match[,pbt := ifelse(classification == "PBT",1,0)]
@@ -44,7 +30,7 @@ tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
                                        carc_releases,
                                        carc_onsite,
                                        air_releases,
-                                       carc_air),sum),
+                                       carc_air),mean),
                              by = year_fips]
 tri_match_mean <- tri_match[,lapply(.(carcinogen,pbt),mean),by = year_fips]
 tri_match_median <- tri_match[,median(primary_naics),by=year_fips]
@@ -66,14 +52,14 @@ colnames(tri_coulev) <- c("year_fips","fugitive_air",
 tri_coulev <- unique(tri_match[,.(year_fips,fips,state)], by = "year_fips")[tri_coulev, on = "year_fips"]
 
 ##---- Update county-level variables related to total_releases ----
-##---- Log transformation ----
+##---- Variables transformation ----
+## Log transformation
 tri_coulev[,ln_total_releases := log(total_releases+1)]
 tri_coulev[,ln_onsite_release_total := log(onsite_release_total+1)]
+tri_coulev[,ln_air_releases := log(air_releases+1)]
 
 tri_coulev[,ln_carc_releases := log(carc_releases+1)]
 tri_coulev[,ln_carc_onsite := log(carc_onsite+1)]
-
-tri_coulev[,ln_air_releases := log(air_releases+1)]
 tri_coulev[,ln_carc_air := log(carc_air+1)]
 
 ## Make nfac_county: number of facilities in a county
@@ -90,56 +76,69 @@ tri_coulev[,nfac_carc_county := N]
 tri_coulev[,N := NULL]
 
 ## Create effect area of all facilities in a county
-tri_coulev[,effect_1km := nfac_county*RADIUS.1KM]
-tri_coulev[,effect_2km := nfac_county*RADIUS.2KM]
-tri_coulev[,effect_5km := nfac_county*RADIUS.5KM]
-tri_coulev[,effect_10km := nfac_county*RADIUS.10KM]
-tri_coulev[,effect_20km := nfac_county*RADIUS.20KM]
+# tri_coulev[,effect_1km := nfac_county*RADIUS.1KM]
+# tri_coulev[,effect_2km := nfac_county*RADIUS.2KM]
+# tri_coulev[,effect_5km := nfac_county*RADIUS.5KM]
+# tri_coulev[,effect_10km := nfac_county*RADIUS.10KM]
+# tri_coulev[,effect_20km := nfac_county*RADIUS.20KM]
+# 
+# tri_coulev[,carc_effect_1km := nfac_carc_county*RADIUS.1KM]
+# tri_coulev[,carc_effect_2km := nfac_carc_county*RADIUS.2KM]
+# tri_coulev[,carc_effect_5km := nfac_carc_county*RADIUS.5KM]
+# tri_coulev[,carc_effect_10km := nfac_carc_county*RADIUS.10KM]
+# tri_coulev[,carc_effect_20km := nfac_carc_county*RADIUS.20KM]
 
-tri_coulev[,carc_effect_1km := nfac_carc_county*RADIUS.1KM]
-tri_coulev[,carc_effect_2km := nfac_carc_county*RADIUS.2KM]
-tri_coulev[,carc_effect_5km := nfac_carc_county*RADIUS.5KM]
-tri_coulev[,carc_effect_10km := nfac_carc_county*RADIUS.10KM]
-tri_coulev[,carc_effect_20km := nfac_carc_county*RADIUS.20KM]
-
-#---- 5. Create panel ----
+#---- 4. Create panel ----
 ## Get panel with partially matched HMDA and TRI
 full_panel <- merge(hmda_match, tri_coulev, all.x = TRUE, by = "year_fips")
 setkey(full_panel, year_fips)
-
-## Get panel with fully matched HMDA and TRI
-hmda_unmatch <- full_panel[is.na(carcinogen)]
-for (i in names(tri_coulev)) {
-  set(hmda_unmatch, which(is.na(hmda_unmatch[[i]])),i,0)
-}
-
-tmatched_panel <- full_panel[!(is.na(carcinogen))]
 rm(hmda_match)
-rm(full_panel)
 rm(tri_match)
 gc()
 
-## Get full panel with all HMDA values and all TRI values
-full_panel <- rbind(tmatched_panel, hmda_unmatch)
-saveRDS(tmatched_panel,file = paste0(wd,panel.folder,"tmatched_panel.rds"))
-saveRDS(hmda_unmatch,file = paste0(wd,hmda.folder,"hmda_unmatch.rds"))
+#---- 5. Add US census data to the panel data ----
+##---- 5.1 Tract level data ----
+tract_dat <- readRDS(paste0(wd,census.folder,"tract_data.RDS"))
+tract_dat[,fips := NULL]
+full_panel[,census_tract:=as.numeric(census_tract)]
+tract_dat[,census_tract:=as.numeric(census_tract)]
+full_panel <- merge(full_panel,tract_dat,all.x = TRUE, by = "census_tract")
 
-rm(tmatched_panel, hmda_unmatch)
-gc()
+##---- 5.2 County level ----
+### Load Census Data (Census data will be matched with the final full_panel)
+county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUNTY.xlsx")))
+county_census[,fips := paste0(STATE,COUNTY)]
 
-## Add US census data to the panel data
+### Collect needed variables in Census Data
+census_dat <- county_census[,.(fips,REGION,POPDEN_COU,POP_COU,HOU_COU,ALAND_COU,
+                               ALAND_PCT_URB,POPPCT_URB,HOUPCT_URB)]
+colnames(census_dat) <- str_to_lower(colnames(census_dat))
+
+### Transform variables
+census_dat[,fips := as.numeric(fips)]
+census_dat[,aland_cou_sqkm:= aland_cou/1000000]
+
+### Merge census data with full panel
 full_panel[,c("year","fips") := tstrsplit(year_fips, "-", fixed=TRUE)] ## To collect the fips value again
 full_panel[,fips := as.numeric(fips)]
 full_panel <- merge(full_panel,census_dat,all.x = TRUE, by = "fips")
 gc()
 
-census_dat[,aland_cou_sqkm:= aland_cou/1000000]
-
-##---- Take sample from full_panel ----
-sampled_panel <- full_panel[sample(.N,500000)]
+# ### Update total releases variables
+# full_panel[,pa_release := total_releases/aland_cou_sqkm] ## Per-area variables
+# full_panel[,pa_onsite := onsite_release_total/aland_cou_sqkm] ## Per-area variables
+# full_panel[,pa_air := air_releases/aland_cou_sqkm] ## Per-area variables
+# 
+# ### Update carc releases variables
+# full_panel[,pa_carc_release := carc_releases/aland_cou_sqkm] ## Per-area variables
+# full_panel[,pa_carc_onsite := carc_onsite/aland_cou_sqkm] ## Per-area variables
+# full_panel[,pa_carc_air := carc_air/aland_cou_sqkm] ## Per-area variables
 
 #---- 6. Export data ----
+##---- Full panel data ----
 saveRDS(tri_coulev,file=paste0(wd,panel.folder,"tri_yearfips.rds"))
 saveRDS(full_panel,file=paste0(wd,panel.folder,"full_panel.rds"))
-write_dta(sampled_panel ,path = paste0(wd,panel.folder,"sampled_panel.dta"))
 
+##---- Sampled panel data ----
+sampled_panel <- full_panel[sample(.N,500000)]
+write_dta(sampled_panel ,path = paste0(wd,panel.folder,"sampled_panel.dta"))

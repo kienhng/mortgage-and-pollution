@@ -14,7 +14,7 @@ US30Y.2019=2.58
 US30Y.2020=1.56
 US30Y.2021=2.06
 
-## FHFA Conforming loan limit value for one-family house
+## FHFA Conforming loan limit value for one-unit property
 CONF.LOAN.LIMIT.2018=453100
 CONF.LOAN.LIMIT.2019=510400
 CONF.LOAN.LIMIT.2020=548250
