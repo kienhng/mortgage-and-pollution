@@ -18,12 +18,12 @@ colnames(tract_raw) <- c("fips","state","county","census_tract","primary_ruca_co
 ## 10 is rural = 4
 ## 99 is NA
 
-tract_raw[primary_ruca_code %in% c(1,2,3),urbru_class := 1]
-tract_raw[primary_ruca_code %in% c(4,5,6),urbru_class := 2]
-tract_raw[primary_ruca_code %in% c(7,8,9),urbru_class := 3]
-tract_raw[primary_ruca_code == 10,urbru_class := 4]
-tract_raw[primary_ruca_code == 99,urbru_class := NA]
+tract_raw[primary_ruca_code %in% c(1,2,3),property_urb_ru := 1] ## Metropolitan
+tract_raw[primary_ruca_code %in% c(4,5,6),property_urb_ru := 2] ## Micropolitan
+tract_raw[primary_ruca_code %in% c(7,8,9),property_urb_ru := 3] ## Small town
+tract_raw[primary_ruca_code == 10,property_urb_ru := 4] ## Rural
+tract_raw[primary_ruca_code == 99,property_urb_ru := NA]
 
 #---- 3. Export data ----
-tract_dat <- tract_raw[,.(fips,census_tract,primary_ruca_code,urbru_class)]
+tract_dat <- tract_raw[,.(fips,census_tract,primary_ruca_code,property_urb_ru)]
 saveRDS(tract_dat,file=paste0(wd,census.folder,"tract_data.RDS"))

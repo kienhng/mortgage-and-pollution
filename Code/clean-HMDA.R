@@ -21,7 +21,7 @@ load(paste0(wd,hmda.folder,"hmda2020.RData"))
 load(paste0(wd,hmda.folder,"hmda2021.RData"))
 lapply(list(hmda2018,hmda2019,hmda2020,hmda2021), as.data.table)
 
-#---- Subset HMDA data ----
+#---- 1. Subset HMDA data ----
 ## Create the outcome variable based on US30 yield
 hmda2018[,us30_spread := interest_rate - US30Y.2018]
 hmda2019[,us30_spread := interest_rate - US30Y.2019]
@@ -43,6 +43,7 @@ hmda2021[,st:=substr(st_cnty_fips,1,nchar(st_cnty_fips)-3)]
 raw_list <- list(hmda2018,hmda2019,hmda2020,hmda2021)
 new_list <- list(1:4)
 
+## Filter features
 for (i in 1:4) {
   new_list[[i]] <- raw_list[[i]][!(st%in%c("60","66","69","72","78")) # Remove mainland-US territories
                                  ][loan_term == 360
@@ -81,7 +82,6 @@ hmda2019_cl <- new_list[[2]]
 hmda2020_cl <- new_list[[3]]
 hmda2021_cl <- new_list[[4]]
 
-## Create subset of HMDA
 hmda_cl <- rbind(hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
 rm(new_list,raw_list,hmda2018,hmda2019,hmda2020,hmda2021,hmda2018_cl,hmda2019_cl,hmda2020_cl,hmda2021_cl)
 gc()
@@ -100,22 +100,18 @@ hmda_match <- hmda_cl[,.(year,lei,census_tract,year_fips,rate_spread,us30_spread
                          purpose,
                          over_conflimit)]
 
-## Relabel data
-hmda_match[,race := 1]
-hmda_match[applicant_race1 %in% c(2,21,22,23,24,25,26,27), race := 2]
-hmda_match[applicant_race1 == 3, race := 3]
-hmda_match[applicant_race1 %in% c(4,41,42,43,44), race := 4]
-hmda_match[applicant_race1 == 5, race := 5]
+#---- 2. Relabel data ----
+## Race
+hmda_match[applicant_race1 %in% c(2,21,22,23,24,25,26,27), race := 2] # Asian
+hmda_match[applicant_race1 == 3, race := 3] # Black
+hmda_match[applicant_race1 == 5, race := 5] # White
+hmda_match[applicant_race1 %in% c(1,4,41,42,43,44), race := 14] # Others
+
 hmda_match[applicant_race1 %in% c(6,7), race := NA]
 hmda_match[is.na(applicant_race1),race := NA]
-
 hmda_match[,applicant_race1 := NULL]
 
-# hmda_match[derived_sex == "Female", derived_sex := 1]
-# hmda_match[derived_sex == "Male", derived_sex := 2]
-# hmda_match[derived_sex == "Joint", derived_sex := 3]
-# hmda_match[derived_sex == "Sex Not Available", derived_sex := NA]
-
+## Age
 hmda_match[applicant_age == "<25", age := 1]
 hmda_match[applicant_age == "25-34", age := 2]
 hmda_match[applicant_age == "35-44", age := 3]
@@ -133,6 +129,12 @@ hmda_match[,age := as.factor(age)]
 hmda_match[,purpose := as.factor(purpose)]
 hmda_match[,over_conflimit := as.factor(over_conflimit)]
 
-# Export HMDA sample
-saveRDS(hmda_match,file = paste0(wd,hmda.folder,"hmda_match.rds"))
+#---- 3. Make weighted data on race ----
+hmda_white <- hmda_match[race == 5][sample(.N,2500000)]
+hmda_nonwhite <- hmda_match[race != 5 & is.na(race) == F]
+hmda_weighted <- rbind(hmda_white,hmda_nonwhite)
+
+#---- 4. Export HMDA sample ----
 saveRDS(hmda_cl,file = paste0(wd,hmda.folder,"hmda_clean.rds"))
+saveRDS(hmda_match,file = paste0(wd,hmda.folder,"hmda_match.rds"))
+saveRDS(hmda_weighted,file = paste0(wd,hmda.folder,"hmda_weighted.rds"))

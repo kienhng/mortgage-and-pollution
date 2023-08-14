@@ -4,10 +4,11 @@ need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 lapply(need.install, install.packages, character.only=T)
 lapply(packages, library, character.only=T)
 
-## Cheking propensity score
 
 sampled_panel <- as.data.table(read_dta(paste0(wd,panel.folder,"sampled_panel.dta")))
 full_panel <- readRDS(file=paste0(wd,panel.folder,"full_panel.rds"))
+
+#---- 1. Summary Statisitcs ---- 
 
 full_panel[,carc_2level := ifelse(carc_releases > 0 & effect_10km > aland_cou, 1,0)]
 full_panel[,.N,carc_2level]
