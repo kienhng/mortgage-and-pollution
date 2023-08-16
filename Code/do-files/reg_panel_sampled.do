@@ -34,22 +34,21 @@ rename region_1 region
 
 destring year, replace
 
-**## 2.2. Create treatment variable:
+**## 2.2. Log-transformation:
+gen lncarc_pa = log(pa_carc_release)
+gen lncarc_on_pa = log(pa_carc_onsite)
+gen lncarc_air = log(pa_carc_air)
+
+**## 2.3. Create treatment variable:
 **### Carc Total
+
 gen carc_2level = 0
 replace carc_2level = 1 if (carc_releases > 0) //Treatment
 
 **### Carc Onsite
-gen lncarc_on_pa = log(pa_carc_onsite)
 
 gen carc_on2level = 1
 replace carc_on2level = 0 if (pa_carc_onsite > 0) //Treatment
-
-gen carc_on4level = 0
-replace carc_on4level = 1 if (carc_onsite > 0) //0
-replace carc_on4level = 2 if (carc_onsite > 72.77791) //p25
-replace carc_on4level = 3 if (carc_onsite > 324.262) //p50
-replace carc_on4level = 4 if (carc_onsite > 931.1233) //p75
 
 **### Carc Air
 gen carc_air2level = 0
@@ -58,7 +57,7 @@ replace carc_air2level = 1 if (carc_air > 0)
 **# 3. Running analysis
 **reghdfe rate_spread ln_carc_onsite purpose over_conflimit loan_to_value_ratio aland_cou popden_cou , absorb(i.year i.dec_loan_to_income##i.dec_loan_to_value##i.race##i.age i.dec_property_value##i.urbru_class i.state)
 
-reghdfe rate_spread c.lncarc_on_pa##i.race ln_total_releases purpose over_conflimit loan_to_value_ratio loan_to_income aland_cou popden_cou unemp_rate county_median_income, absorb(i.year i.state i.dec_loan_to_value##i.dec_property_value##i.dec_income##i.race##i.property_urb_ru)
+reghdfe rate_spread c.lncarc_on_pa ln_total_releases purpose over_conflimit loan_to_value_ratio loan_to_income aland_cou popden_cou unemp_rate county_median_income, absorb(i.year##i.state##i.dec_loan_to_value##i.dec_property_value##i.dec_income##i.race##i.property_urb_ru) vce(cluster fips)
 
 reghdfe rate_spread c.lncarc_on_pa##i.race ln_total_releases purpose over_conflimit loan_to_value_ratio loan_to_income aland_cou popden_cou unemp_rate county_median_income, absorb(i.year i.state i.dec_loan_to_value##i.dec_property_value##i.dec_income##i.race##i.property_urb_ru) vce(cluster state)
 

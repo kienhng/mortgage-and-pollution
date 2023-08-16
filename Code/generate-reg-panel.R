@@ -97,33 +97,22 @@ rm(hmda_weighted, tri_match)
 #---- 5. Add US census data to the panel data ----
 ##---- 5.1 Tract level data ----
 tract_dat <- readRDS(paste0(wd,census.folder,"tract_data.RDS"))
-tract_dat[,fips := NULL]
 
 full_panel[,census_tract:=as.numeric(census_tract)]
 tract_dat[,census_tract:=as.numeric(census_tract)]
-
 full_panel <- merge(full_panel,tract_dat,all.x = TRUE, by = "census_tract")
 
 ##---- 5.2 County level ----
 ### Load Census Data (Census data will be matched with the final full_panel)
-county_census <- as.data.table(read_excel(paste0(wd,census.folder,"/2020_UA_COUNTY.xlsx")))
-county_demog <- as.data.table(read_excel(paste0(wd,census.folder,"/CountyUnemployment.xlsx"),sheet = "2022_unemp_income"))
-county_census[,fips := paste0(STATE,COUNTY)]
-county_census <- merge(county_census,county_demog,all.x=TRUE,by="fips")
-county_census
-
-### Collect needed variables in Census Data
-census_dat <- county_census[,.(fips,REGION,POPDEN_COU,POP_COU,ALAND_COU,unemp_rate,county_median_income)]
-colnames(census_dat) <- str_to_lower(colnames(census_dat))
-
-### Transform variables
-census_dat[,fips := as.numeric(fips)]
-census_dat[,aland_cou_sqkm:= aland_cou/1000000]
+cnty_census <- readRDS(file=paste0(wd,census.folder,"county_census.rds"))
+cnty_census[,fips := NULL]
+cnty_census[,cnty_total_wage:=as.numeric(cnty_total_wage)]
+cnty_census[,cnty_umemp_rate:=as.numeric(cnty_unemp_rate)]
+cnty_census[,cnty_labor_force:=as.numeric(cnty_labor_force)]
+cnty_census[,cnty_unemployed:=as.numeric(cnty_unemployed)]
 
 ### Merge census data with full panel
-full_panel[,c("year","fips") := tstrsplit(year_fips, "-", fixed=TRUE)] ## To collect the fips value again
-full_panel[,fips := as.numeric(fips)]
-full_panel <- merge(full_panel,census_dat,all.x = FALSE, by = "fips")
+full_panel <- merge(full_panel,cnty_census,all.x = FALSE, by = "year_fips")
 
 ### Update total releases variables
 full_panel[,pa_release := total_releases/aland_cou_sqkm] ## Per-area variables
@@ -135,10 +124,9 @@ full_panel[,pa_carc_release := carc_releases/aland_cou_sqkm] ## Per-area variabl
 full_panel[,pa_carc_onsite := carc_onsite/aland_cou_sqkm] ## Per-area variables
 full_panel[,pa_carc_air := carc_air/aland_cou_sqkm] ## Per-area variables
 
-#---- 6. Creat maching sample data ----
+#---- 6. Create maching sample data ----
 ## Due to the large size of the regression panel data, I need to creat a smaller sample to run PSM
 ## The smaller sample will have the same amount of obs with 0 carcinogen release, and a random sample of non-0 carc releases
-
 carc_zero <- full_panel[carc_releases == 0]
 carc_nonzero_sample <- full_panel[carc_releases != 0][sample(.N,400000)]
 

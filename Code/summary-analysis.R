@@ -19,8 +19,3 @@ normlised_control <- full_panel[dec_property_value == 1][dec_income == 1][dec_lo
 normlised_treatment <- full_panel[dec_property_value == 1][dec_income == 1][dec_loan_to_value == 1][race == 1][carc_2level == 1][,rate_spread]
 
 t.test(normlised_control,normlised_treatment)
-
-full_panel[,radius_check := sqrt(aland_cou/pi)]
-summary(full_panel[,radius_check])
-
-full_panel[is.na(aland_cou)]

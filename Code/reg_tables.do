@@ -1,6 +1,7 @@
 clear all
 set more off
 
+*ssc install estout
 *********************
 * FOLLOW THESE STEPS
 *********************
@@ -11,7 +12,7 @@ set more off
 	cd "C:\Users\kingd\OneDrive\D\DOCUMENTS\OOUeb\5. Kien's Thesis\uon-msc-thesis"
 	
 	// Kien
-	cd "..."
+	cd ""
 	
 **# 2. Load data
 
@@ -77,16 +78,6 @@ set more off
 		replace
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-
-
 // 	xtreg rate_spread total_releases ltv_ratio property_value income, fe robust
 //
 // 	xtreg rate_spread carc_release ltv_ratio property_value income, fe robust
