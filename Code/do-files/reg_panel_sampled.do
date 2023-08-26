@@ -9,10 +9,14 @@ clear
 set linesize 80
 set more off
 
-*ssc install reghdfe
-*ssc install ftools
+// ssc install reghdfe
+// ssc install ftools
 
-use "C:\Users\LLR User\OneDrive\3_Work_Research\uon-msc-thesis\Data\PanelData\sampled_panel.dta" 
+// Kien:
+// use "C:\Users\LLR User\OneDrive\3_Work_Research\uon-msc-thesis\Data\PanelData\sampled_panel.dta" 
+
+// Chinh:
+use "C:\Users\kingd\OneDrive\D\DOCUMENTS\OOUeb\5. Kien's Thesis\uon-msc-thesis\Data\sampled_panel.dta", clear
 
 **# 2. Create new variables
 **## 2.1. Encoding
