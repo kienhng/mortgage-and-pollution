@@ -1,0 +1,1 @@
+reg_tables: to display all the table
