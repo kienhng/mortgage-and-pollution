@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.5) (preloaded format=pdflatex 2023.5.12)  8 AUG 2023 23:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.5) (preloaded format=pdflatex 2023.5.12)  26 AUG 2023 23:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1189,16 +1189,18 @@ Underfull \hbox (badness 10000) in paragraph at lines 80--82
 
  []
 
-[2] [3] [4] (tab-exp.tex) [5] [6
+[2] [3] [4] (tab-exp.tex [5
 
+] [6]) [7] [8
 
-] (tab-exp.tex) [7] [8] (mortgage-pollution.bbl) [9]
-<fig-random.png, id=136, 513.92pt x 513.92pt>
+] (tab-exp.tex [9] [10]) [11]
+(mortgage-pollution.bbl) [12]
+<fig-random.png, id=148, 513.92pt x 513.92pt>
 File: fig-random.png Graphic file (type png)
 <use fig-random.png>
 Package pdftex.def Info: fig-random.png  used on input line 208.
 (pdftex.def)             Requested size: 308.71106pt x 308.71509pt.
- [10 <./fig-random.png>] (mortgage-pollution.aux)
+ [13 <./fig-random.png>] (mortgage-pollution.aux)
 
 LaTeX Warning: There were multiply-defined labels.
 
@@ -1206,13 +1208,13 @@ Package rerunfilecheck Info: File `mortgage-pollution.out' has not changed.
 (rerunfilecheck)             Checksum: 597D9A7C4214A83260BAB0687A1C861A;1932.
  ) 
 Here is how much of TeX's memory you used:
- 29951 strings out of 476361
- 593472 string characters out of 5788244
- 1867242 words of memory out of 5000000
- 49826 multiletter control sequences out of 15000+600000
+ 29958 strings out of 476361
+ 593208 string characters out of 5788244
+ 1870242 words of memory out of 5000000
+ 49830 multiletter control sequences out of 15000+600000
  524645 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,14n,86p,1525b,938s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,14n,86p,1525b,1068s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/kingd/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/
 cmbx10.pfb><C:/Users/kingd/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
 fonts/cm/cmbx12.pfb><C:/Users/kingd/AppData/Local/Programs/MiKTeX/fonts/type1/p
@@ -1232,9 +1234,9 @@ onts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/kingd/AppData/Local/Programs/
 MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/kingd/AppData/Local/
 Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Users/kingd/AppDat
 a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on mortgage-pollution.pdf (10 pages, 502694 bytes).
+Output written on mortgage-pollution.pdf (13 pages, 506042 bytes).
 PDF statistics:
- 222 PDF objects out of 1000 (max. 8388607)
- 35 named destinations out of 1000 (max. 500000)
+ 238 PDF objects out of 1000 (max. 8388607)
+ 38 named destinations out of 1000 (max. 500000)
  114 words of extra memory for PDF output out of 10000 (max. 10000000)
 
