@@ -1,11 +1,13 @@
 #---- 1. Working directory ----
-wd = "C:/Users/LLR User/OneDrive/3_Work_Research/uon-msc-thesis"
+user<-Sys.info()[["user"]]
+wd = paste0("C:/Users/",user,"/OneDrive/3_Work_Research/uon-msc-thesis")
 # Input Folders
 hmda.folder <- "/Data/RawData-HMDA/"
 tri.folder = "/Data/RawData-TRI/"
 census.folder = "/Data/US-census/"
 # Output Folders
 panel.folder = "/Data/PanelData/"
+graph.folder = "/Graphs/"
 
 #---- 2. Economic Constants
 ## Avg 30-year US Treasuary yield

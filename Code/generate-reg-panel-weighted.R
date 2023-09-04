@@ -55,7 +55,7 @@ tri_coulev <- unique(tri_match[,.(year_fips,fips,state)], by = "year_fips")[tri_
 ##---- Variables transformation ----
 ## Log transformation
 tri_coulev[,ln_total_releases := log(total_releases+1)]
-tri_coulev[,ln_onsite_release_total := log(onsite_release_total+1)]
+tri_coulev[,ln_onsite_release := log(onsite_release_total+1)]
 tri_coulev[,ln_air_releases := log(air_releases+1)]
 
 tri_coulev[,ln_carc_releases := log(carc_releases+1)]
@@ -106,10 +106,10 @@ full_panel <- merge(full_panel,tract_dat,all.x = TRUE, by = "census_tract")
 ### Load Census Data (Census data will be matched with the final full_panel)
 cnty_census <- readRDS(file=paste0(wd,census.folder,"county_census.rds"))
 cnty_census[,fips := NULL]
-cnty_census[,cnty_total_wage:=as.numeric(cnty_total_wage)]
-cnty_census[,cnty_umemp_rate:=as.numeric(cnty_unemp_rate)]
-cnty_census[,cnty_labor_force:=as.numeric(cnty_labor_force)]
-cnty_census[,cnty_unemployed:=as.numeric(cnty_unemployed)]
+# cnty_census[,cnty_total_wage:=as.numeric(cnty_total_wage)]
+cnty_census[,cnty_unemp_rate:=as.numeric(cnty_unemp_rate)]
+# cnty_census[,cnty_labor_force:=as.numeric(cnty_labor_force)]
+# cnty_census[,cnty_unemployed:=as.numeric(cnty_unemployed)]
 
 ### Merge census data with full panel
 full_panel <- merge(full_panel,cnty_census,all.x = FALSE, by = "year_fips")
@@ -137,10 +137,11 @@ psm_sample <- rbind(carc_zero, carc_nonzero_sample)
 saveRDS(tri_coulev,file=paste0(wd,panel.folder,"tri_yearfips.rds"))
 saveRDS(full_panel,file=paste0(wd,panel.folder,"full_panel.rds"))
 
+write_dta(full_panel ,path = paste0(wd,panel.folder,"full_panel.dta"))
+
 ##---- Sampled panel data ----
-sampled_panel <- full_panel[sample(.N,2000000)]
+sampled_panel <- full_panel[sample(.N,1000000)]
 write_dta(sampled_panel ,path = paste0(wd,panel.folder,"sampled_panel.dta"))
 
 ##---- PSM sample data ----
 write_dta(psm_sample ,path = paste0(wd,panel.folder,"psm_sample.dta"))
-
