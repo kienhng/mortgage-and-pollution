@@ -9,6 +9,16 @@ text_style <- theme(text = element_text(size=14),
                     legend.title=element_text(size=14),
                     axis.text=element_text(14))
 
+#-------- Testing Ground -----------
+tri_year <- readRDS(file=paste0(wd,panel.folder,"tri_yearfips.rds"))
+tri_clean <- readRDS(file=paste0(wd,tri.folder,"tri_clean.rds"))
+
+big <- tri_year[fips == 48245][year_fips=="2021-48245",carc_releases] ## Jefferson
+small <- tri_year[fips == 48485][year_fips=="2021-48485",carc_releases] ## Wichita
+(log(big)-log(small))*0.004
+
+#-------- Testing Ground -----------
+
 sampled_panel <- as.data.table(read_dta(paste0(wd,panel.folder,"sampled_panel.dta")))
 
 #---- 1. Summary Statisitcs ----
@@ -18,13 +28,8 @@ graph_panel <- sampled_panel[,ln_carc_releases:=log(carc_releases)
                                 ][ln_pa_carc_releases!="-Inf"
                                 ][ln_carc_releases>quantile(ln_carc_releases,probs=0.01)&ln_carc_releases<quantile(ln_carc_releases,prob=0.99)
                                  ][!is.na(metro_dummy)
-                                   ][!is.na(bank)]
-
-graph_panel[,carc_dummy:="High Carcinogen Exposure"]
-graph_panel[carc_releases > median(carc_releases),carc_dummy:="Low Carcinogen Exposure"]
-
-graph_panel[,income_dummy:="Below Median Income"]
-graph_panel[income > median(income),income_dummy:="Above Median Income"]
+                                   ][!is.na(bank)
+                                     ][loan_to_value_ratio < 100]
 
 # Create text variables
 graph_panel[race==1,text_race:="White"]
@@ -76,16 +81,19 @@ setwd(paste0(wd,graph.folder))
 ggsave(file="spread_carcdummy_bank.png",spread_carcdummy_bank,height = 15, width = 15, units="cm")
 
 #---- 3. Purpose box plot ----
-spread_carcdummy_purpose <- ggplot(data=graph_panel,aes(y=rate_spread,x=factor(text_purpose),fill=factor(text_purpose))) +
-  ylim(-0.75,1.25) +
+spread_carcdummy_purpose <- ggplot(data=graph_panel,aes(y=interest_rate,x=factor(text_purpose),fill=factor(text_purpose))) +
+  ylim(-0.75,10) +
   geom_boxplot(alpha=0.9) + 
   labs(x="",
        y="Mortgage Rate Spread") +
   scale_fill_manual(values=c("orange2","grey80")) + 
   guides(fill="none") +
-  theme_light() +
+  theme_light()
+  facet_wrap(vars(factor(region))) +
   text_style
 
 print(spread_carcdummy_purpose)
 setwd(paste0(wd,graph.folder))
 ggsave(file="spread_carcdummy_purpose.png",spread_carcdummy_purpose,height = 15, width = 15, units="cm")
+
+sampled_panel[,median(),purpose]

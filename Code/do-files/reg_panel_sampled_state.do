@@ -105,8 +105,6 @@ replace black = 1 if (race == 3)
 g covid = 0
 replace covid = 1 if (year == 2020 | year == 2021)
 
-g
-
 egen med_income = median(income)
 g income_dummy = 0
 replace income_dummy = 1 if(income > med_income)
@@ -156,17 +154,18 @@ label var carcon_dummy "Carcinogen Exposure"
 label var carcair_dummy "Carcinogen Exposure"
 
 s
+
 **## Summary Statistics
 drop if loan_to_value_ratio > 1
 
-tabstat carc_releases ln_carc_releases onsite_release_total ln_onsite_release carc_air ln_carc_air aland_cou houden_cou cnty_unemp_rate, statistics(count mean sd p25 p50 p75 min max) col(statistics)
+tabstat carc_releases ln_carc_releases other_release ln_other_release carc_air ln_carc_air aland_cou houden_cou cnty_unemp_rate, statistics(count mean sd p25 p50 p75 min max) col(statistics)
 
-tabstat rate_spread interest_rate loan_to_value_ratio income ln_income property_value ln_property_value age gender bank purpose, statistics(count mean sd p25 p50 p75 min max) col(statistics)
+tabstat rate_spread interest_rate loan_to_value_ratio income ln_income property_value ln_property_value bank purpose, statistics(count mean sd p25 p50 p75 min max) col(statistics)
 
 **# 3. Baseline Model
 **## 3.1. Rate Spread
 **### Year State FE Rate Spread
-eststo bl1: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
+eststo bl1: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
 	estadd local yfe "Yes", replace
 	estadd local sfe "Yes", replace
 	estadd local ysfe "No", replace
@@ -176,7 +175,7 @@ eststo bl1: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank loan_to_valu
 	estadd scalar Mean = r(mean)
 
 **### Year##State FE Rate Spread
-eststo bl2: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
+eststo bl2: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -186,7 +185,7 @@ eststo bl2: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank loan_to_valu
 	estadd scalar Mean = r(mean)
 	
 **### Year State Lei FE Rate Spread
-eststo bl3: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
+eststo bl3: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -197,7 +196,7 @@ eststo bl3: reghdfe rate_spread c.ln_carc_releases i.purpose i.bank loan_to_valu
 
 **## 3.2. Interest Rate
 **### Year State FE Interest Rate
-eststo bl_ir1: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
+eststo bl_ir1: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
 	estadd local yfe "Yes", replace
 	estadd local sfe "Yes", replace
 	estadd local ysfe "No", replace
@@ -207,7 +206,7 @@ eststo bl_ir1: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank loan_to
 	estadd scalar Mean = r(mean)
 
 **### Year#State FE Interest Rate
-eststo bl_ir2: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
+eststo bl_ir2: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -217,7 +216,7 @@ eststo bl_ir2: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank loan_to
 	estadd scalar Mean = r(mean)
 	
 **### Year State Lei FE Interest Rate
-eststo bl_ir3: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
+eststo bl_ir3: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -230,7 +229,7 @@ eststo bl_ir3: reghdfe interest_rate c.ln_carc_releases i.purpose i.bank loan_to
 **# 4. Robustness check
 **## 4.1. Using US_30 tresuary
 **### Year State FE Rate Spread
-eststo rb1: reghdfe us30_spread c.ln_carc_air i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
+eststo rb1: reghdfe us30_spread c.ln_carc_air i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
 	estadd local yfe "Yes", replace
 	estadd local sfe "Yes", replace
 	estadd local ysfe "No", replace
@@ -240,7 +239,7 @@ eststo rb1: reghdfe us30_spread c.ln_carc_air i.purpose i.bank loan_to_value_rat
 	estadd scalar Mean = r(mean)
 
 **### Year##State FE Rate Spread
-eststo rb2: reghdfe us30_spread c.ln_carc_air i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
+eststo rb2: reghdfe us30_spread c.ln_carc_air i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -250,7 +249,7 @@ eststo rb2: reghdfe us30_spread c.ln_carc_air i.purpose i.bank loan_to_value_rat
 	estadd scalar Mean = r(mean)
 	
 **### Year State Lei FE Rate Spread
-eststo rb3: reghdfe us30_spread c.ln_carc_air i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
+eststo rb3: reghdfe us30_spread c.ln_carc_air i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -260,7 +259,7 @@ eststo rb3: reghdfe us30_spread c.ln_carc_air i.purpose i.bank loan_to_value_rat
 	estadd scalar Mean = r(mean)
 	
 **### Year State FE Interest Rate
-eststo rb_ir1: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
+eststo rb_ir1: reghdfe interest_rate c.ln_carc_air i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
 	estadd local yfe "Yes", replace
 	estadd local sfe "Yes", replace
 	estadd local ysfe "No", replace
@@ -270,7 +269,7 @@ eststo rb_ir1: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 	estadd scalar Mean = r(mean)
 
 **### Year##State FE Interest Rate
-eststo rb_ir2: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
+eststo rb_ir2: reghdfe interest_rate c.ln_carc_air i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -280,7 +279,7 @@ eststo rb_ir2: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 	estadd scalar Mean = r(mean)
 	
 **### Year State Lei FE Interest Rate
-eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
+eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value i.metro_dummy aland_cou houden_cou cnty_unemp_rate ln_other_release, absorb(i.year#i.state i.lei) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -296,7 +295,7 @@ eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 **# 5. Additional analysis
 **## 5.1 Using High-Low treatment
 **### Year State FE Rate Spread
-// eststo hilo1: reghdfe rate_spread i.carc_dummy i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+// eststo hilo1: reghdfe rate_spread i.carc_dummy i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 // 	estadd local ysfe "Yes", replace
 //  	estadd local lfe "No", replace
 // 	estadd local clstr "Yes", replace
@@ -304,7 +303,7 @@ eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 // 	estadd scalar Mean = r(mean)
 //
 // **### Year State Lei FE Rate Spread
-// eststo hilo2: reghdfe rate_spread i.carc_dummy i.purpose i.bank  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
+// eststo hilo2: reghdfe rate_spread i.carc_dummy i.purpose i.bank  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
 // 	estadd local ysfe "Yes", replace
 //  	estadd local lfe "Yes", replace
 // 	estadd local clstr "Yes", replace
@@ -312,7 +311,7 @@ eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 // 	estadd scalar Mean = r(mean)
 //	
 // **### Year State FE Interest Rate
-// eststo hilo3: reghdfe interest_rate i.carc_dummy i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+// eststo hilo3: reghdfe interest_rate i.carc_dummy i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 // 	estadd local ysfe "Yes", replace
 //  	estadd local lfe "No", replace
 // 	estadd local clstr "Yes", replace
@@ -320,7 +319,7 @@ eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 // 	estadd scalar Mean = r(mean)
 //
 // **### Year State Lei FE Interest Rate
-// eststo hilo4: reghdfe interest_rate i.carc_dummy i.purpose i.bank  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
+// eststo hilo4: reghdfe interest_rate i.carc_dummy i.purpose i.bank  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
 // 	estadd local ysfe "Yes", replace
 //  	estadd local lfe "Yes", replace
 // 	estadd local clstr "Yes", replace
@@ -329,7 +328,7 @@ eststo rb_ir3: reghdfe interest_rate c.ln_carc_air i.purpose i.bank loan_to_valu
 
 **## 5.2 Interact with Purpose
 **### Year State FE Rate Spread
-eststo itr_purp1: reghdfe rate_spread c.ln_carc_releases##i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+eststo itr_purp1: reghdfe rate_spread c.ln_carc_releases##i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "No", replace
 	estadd local clstr "Yes", replace
@@ -337,7 +336,7 @@ eststo itr_purp1: reghdfe rate_spread c.ln_carc_releases##i.purpose i.bank loan_
 	estadd scalar Mean = r(mean)
 
 **### Year State Lei FE Rate Spread
-eststo itr_purp2: reghdfe rate_spread c.ln_carc_releases##i.purpose i.bank  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
+eststo itr_purp2: reghdfe rate_spread c.ln_carc_releases##i.purpose i.bank  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "Yes", replace
 	estadd local clstr "Yes", replace
@@ -345,7 +344,7 @@ eststo itr_purp2: reghdfe rate_spread c.ln_carc_releases##i.purpose i.bank  loan
 	estadd scalar Mean = r(mean)
 	
 **### Year State FE Interest Rate
-eststo itr_purp3: reghdfe interest_rate c.ln_carc_releases##i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+eststo itr_purp3: reghdfe interest_rate c.ln_carc_releases##i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "No", replace
 	estadd local clstr "Yes", replace
@@ -353,7 +352,7 @@ eststo itr_purp3: reghdfe interest_rate c.ln_carc_releases##i.purpose i.bank loa
 	estadd scalar Mean = r(mean)
 
 **### Year State Lei FE Interest Rate
-eststo itr_purp4: reghdfe interest_rate c.ln_carc_releases##i.purpose i.bank  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
+eststo itr_purp4: reghdfe interest_rate c.ln_carc_releases##i.purpose i.bank  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "Yes", replace
 	estadd local clstr "Yes", replace
@@ -362,7 +361,7 @@ eststo itr_purp4: reghdfe interest_rate c.ln_carc_releases##i.purpose i.bank  lo
 	
 **## 5.3 Interact with Bank
 **### Year State FE Rate Spread
-eststo itr_bank1: reghdfe rate_spread c.ln_carc_releases##i.bank i.purpose  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+eststo itr_bank1: reghdfe rate_spread c.ln_carc_releases##i.bank i.purpose  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "No", replace
 	estadd local clstr "Yes", replace
@@ -371,7 +370,7 @@ eststo itr_bank1: reghdfe rate_spread c.ln_carc_releases##i.bank i.purpose  loan
 
 
 **### Year State Lei FE Rate Spread
-eststo itr_bank2: reghdfe rate_spread c.ln_carc_releases##i.bank i.purpose  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
+eststo itr_bank2: reghdfe rate_spread c.ln_carc_releases##i.bank i.purpose  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "Yes", replace
 	estadd local clstr "Yes", replace
@@ -379,7 +378,7 @@ eststo itr_bank2: reghdfe rate_spread c.ln_carc_releases##i.bank i.purpose  loan
 	estadd scalar Mean = r(mean)
 
 **### Year State FE Interest Rate
-eststo itr_bank3: reghdfe interest_rate c.ln_carc_releases##i.bank i.purpose  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+eststo itr_bank3: reghdfe interest_rate c.ln_carc_releases##i.bank i.purpose  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "No", replace
 	estadd local clstr "Yes", replace
@@ -388,7 +387,7 @@ eststo itr_bank3: reghdfe interest_rate c.ln_carc_releases##i.bank i.purpose  lo
 
 
 **### Year State Lei FE Interest Rate
-eststo itr_bank4: reghdfe interest_rate c.ln_carc_releases##i.bank i.purpose  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_total_releases, absorb(i.year##i.state i.lei) cluster(fips)
+eststo itr_bank4: reghdfe interest_rate c.ln_carc_releases##i.bank i.purpose  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state i.lei) cluster(fips)
 	estadd local ysfe "Yes", replace
  	estadd local lfe "Yes", replace
 	estadd local clstr "Yes", replace
@@ -398,7 +397,7 @@ eststo itr_bank4: reghdfe interest_rate c.ln_carc_releases##i.bank i.purpose  lo
 	
 **## 5.5 Interact with Race
 **### Year State FE Rate Spread
-eststo itr_race1: reghdfe rate_spread c.ln_carc_releases##i.black i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
+eststo itr_race1: reghdfe rate_spread c.ln_carc_releases##i.black i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
 	estadd local yfe "Yes", replace
 	estadd local sfe "Yes", replace
 	estadd local ysfe "No", replace
@@ -407,7 +406,7 @@ eststo itr_race1: reghdfe rate_spread c.ln_carc_releases##i.black i.purpose i.ba
 	estadd scalar Mean = r(mean)
 
 **### Year State FE Rate Spread
-eststo itr_race2: reghdfe rate_spread c.ln_carc_releases##i.black i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+eststo itr_race2: reghdfe rate_spread c.ln_carc_releases##i.black i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -416,7 +415,7 @@ eststo itr_race2: reghdfe rate_spread c.ln_carc_releases##i.black i.purpose i.ba
 	estadd scalar Mean = r(mean)
 	
 **### Year State FE Interest Rate
-eststo itr_race3: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
+eststo itr_race3: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year i.state) cluster(fips)
 	estadd local yfe "Yes", replace
 	estadd local sfe "Yes", replace
 	estadd local ysfe "No", replace
@@ -425,7 +424,7 @@ eststo itr_race3: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.
 	estadd scalar Mean = r(mean)
 	
 **### Year State FE Interest Rate
-eststo itr_race4: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.bank loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
+eststo itr_race4: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.bank c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou i.metro_dummy cnty_unemp_rate ln_other_release, absorb(i.year##i.state) cluster(fips)
 	estadd local yfe "No", replace
 	estadd local sfe "No", replace
 	estadd local ysfe "Yes", replace
@@ -437,7 +436,7 @@ eststo itr_race4: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.
 	
 // **## 5.4 DiD with 2020 Covid
 // **### Year State FE
-// eststo add_did1: reghdfe rate_spread c.ln_carc_releases c.ln_carc_releases#i.covid i.purpose i.bank  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income##c.c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou  aland_cou houden_cou cnty_unemp_rate, absorb(i.year i.state) cluster(fips)
+// eststo add_did1: reghdfe rate_spread c.ln_carc_releases c.ln_carc_releases#i.covid i.purpose i.bank  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income##c.c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou  aland_cou houden_cou cnty_unemp_rate, absorb(i.year i.state) cluster(fips)
 // 	estadd local yfe "Yes", replace
 // 	estadd local sfe "Yes", replace
 // 	estadd local ysfe "No", replace
@@ -448,7 +447,7 @@ eststo itr_race4: reghdfe interest_rate c.ln_carc_releases##i.black i.purpose i.
 // 	estadd scalar Mean = r(mean)
 //
 // **### Year##State FE
-// eststo add_did2: reghdfe rate_spread c.ln_carc_releases c.ln_carc_releases#i.covid  i.purpose i.bank  loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income##c.c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou  aland_cou houden_cou cnty_unemp_rate, absorb(i.year##i.state) cluster(fips)
+// eststo add_did2: reghdfe rate_spread c.ln_carc_releases c.ln_carc_releases#i.covid  i.purpose i.bank  c.loan_to_value_ratio##c.loan_to_value_ratio c.age##c.age c.ln_income##c.ln_income##c.c.ln_income##c.ln_income i.gender i.race ln_property_value aland_cou houden_cou  aland_cou houden_cou cnty_unemp_rate, absorb(i.year##i.state) cluster(fips)
 // 	estadd local yfe "Yes", replace
 // 	estadd local sfe "Yes", replace
 // 	

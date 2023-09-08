@@ -29,9 +29,9 @@ for (i in names(release_map)) {
 release_map <- plot_usmap(data = release_map, values = "total_releases", color = "gray80") +
   scale_fill_gradient(low="lightyellow",
                       high="red3") +
-  labs(title="Total Releases by county",
+  labs(title="",
        fill="Total Releases       \n(Log-Transformed)      ") +
-  theme(panel.background = element_rect(color = "black", fill = "gray98",size=0.5),
+  theme(panel.background = element_rect(color="grey80",size=0.5),
         legend.position = "bottom",
         legend.justification = "center") +
   # guides(color = guide_legend(override.aes = list(size=5))) +
@@ -59,10 +59,10 @@ facility_map <- plot_usmap(regions = "states") +
                      labels=c("No","Yes")) +
   scale_shape_manual(values=c(19,17),
                      labels=c("No","Yes")) +
-  labs(title="Location of TRI facilities",
+  labs(title="",
        color="Carcinogen-released facility",
        shape="Carcinogen-released facility") +
-  theme(panel.background = element_rect(color = "black", fill = "gray98"),
+  theme(panel.background = element_rect(color = "grey80",size=0.5),
         legend.position = "bottom",
         legend.justification = "center") +
   guides(color = guide_legend(override.aes = list(size=2))) +
@@ -74,3 +74,28 @@ ggsave(file = "facility_map.jpg", facility_map, width = 30, height = 20, units =
 
 #---- 3. Create rate_spread map ----
 hmda_match <- readRDS(file=paste0(wd,hmda.folder,"hmda_match.rds"))
+hmda_match[,fips:=substring(year_fips,6)]
+hmda_match[,fips := as.character(fips)]
+hmda_match[nchar(fips) < 5,fips := paste0(0, fips)]
+
+## Create rate spread by counties
+fips_rate <- hmda_match[,.(rate_spread=mean(rate_spread),interest_rate=mean(interest_rate),us30_spread=mean(us30_spread)),fips]
+counties <- as.data.table(usmap::countypop)
+
+rate_map <- as.data.table(merge(fips_rate, counties, all.y=T, on="fips"))
+
+## Draw map
+rate_mapplot <- plot_usmap(data = rate_map, values = "rate_spread", color = "gray80") +
+  scale_fill_steps2() +
+  labs(title="",
+       fill="Rate Spread") +
+  theme(panel.background = element_rect(color="grey80",size=0.5),
+        legend.position = "bottom",
+        legend.justification = "center",
+        legend.key.width=unit(2,"cm")) +
+  text_style
+print(rate_mapplot)
+setwd(paste0(wd,graph.folder))
+ggsave(file = "rate_map.jpg", rate_mapplot, width = 30, height = 20, units = "cm")
+
+

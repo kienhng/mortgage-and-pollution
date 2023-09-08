@@ -59,8 +59,6 @@ tri_clean <- tri_dat %>%
          offsite_release_total, 
          total_releases)
 
-tri_dat[,chemical][!(tri_dat[year == 2018][,chemical] %in% tri_dat[year == 2021][,chemical])]
-
 #---- 3. Create FIPS code for TRI data ----
 ##---- Thinking process ----
 # The TRI data does not have FIPS codes, but rather state and county names
