@@ -5,7 +5,7 @@ The repo contains the code files and documents of my Master's thesis at the Univ
 
 File _Code/README-code-overview.txt_ describes the code and data wrangling process.<br />
 File _Docs/Notes-on-variables.docx_ describes the variables used in the analysis.<br />
-Files _Dictionary-HMDA.xlsx_ and _Dictionary-TRI.pdf_ are variable dictionary for the original data.
+Files _Docs/Dictionary-HMDA.xlsx_ and _Docs/Dictionary-TRI.pdf_ are variable dictionary for the original data.
 
 **Research Abstract:**<br />
 This research explores the impact of carcinogen exposure on mortgage credit costs in the U.S. housing market by utilising the Home Mortgage Disclosure Act (HMDA) and the Toxic Release Inventory (TRI) dataset. In the baseline result, the analysis identifies a modest premium in mortgage rate spreads for properties exposed to carcinogens, which is consistent with the impact of other long-term risks.
