@@ -1,6 +1,6 @@
 #---- 1. Working directory ----
 user<-Sys.info()[["user"]]
-wd = paste0("C:/Users/",user,"/OneDrive/3_Work_Research/uon-msc-thesis")
+wd = paste0("C:/Users/",user,"/OneDrive/3_Work_Research/mortgage-and-pollution")
 # Input Folders
 hmda.folder <- "/Data/RawData-HMDA/"
 tri.folder = "/Data/RawData-TRI/"
