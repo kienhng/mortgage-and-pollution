@@ -32,6 +32,10 @@ vignettes/*.pdf
 po/*~
 # RStudio Connect folder
 rsconnect/
-uon-msc-thesis.Rproj
-/Data/RawData-TRI
+*.Rproj
+
+*.Rhistory
+
+# Block Data and Writing folders
+/Writing
 /Data
