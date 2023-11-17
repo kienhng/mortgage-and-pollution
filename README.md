@@ -3,9 +3,9 @@
 **Description:**
 The repo contains the code files and documents of my Master's thesis at the University of Nottingham. There is no data, however, due to the large size of the data files which exceeds the Github limits (or maybe it slows down the Git working process - I'm not entirely sure which one is the main problem).
 
-File _Code/README-code-overview.txt_ describes the code and data wrangling process.
-File _Docs/Notes-on-variables.docx_ describes the variables used in the analysis.
-Files _Dictionary-HMDA.xlsx_ and _Dictionary-TRI.pdf_ are variable dictionary for the original data.
+File _Code/README-code-overview.txt_ describes the code and data wrangling process. \n
+File _Docs/Notes-on-variables.docx_ describes the variables used in the analysis. \n
+Files _Dictionary-HMDA.xlsx_ and _Dictionary-TRI.pdf_ are variable dictionary for the original data. \n
 
 **Research Abstract:**
 This research explores the impact of carcinogen exposure on mortgage credit costs in the U.S. housing market by utilising the Home Mortgage Disclosure Act (HMDA) and the Toxic Release Inventory (TRI) dataset. In the baseline result, the analysis identifies a modest premium in mortgage rate spreads for properties exposed to carcinogens, which is consistent with the impact of other long-term risks.
