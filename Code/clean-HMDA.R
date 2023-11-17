@@ -120,9 +120,13 @@ hmda_match[applicant_race1 == 5, race := 1] # White
 hmda_match[applicant_race1 %in% c(2,21,22,23,24,25,26,27), race := 2] # Asian
 hmda_match[applicant_race1 == 3, race := 3] # Black
 hmda_match[applicant_race1 %in% c(1,4,41,42,43,44), race := 4] # Others
-
 hmda_match[applicant_race1 %in% c(6,7), race := NA]
 hmda_match[is.na(applicant_race1),race := NA]
+
+## Check
+hmda_match[,mean(race==1,na.rm=T)]
+hmda_match[,mean(race==2,na.rm=T)]
+hmda_match[,mean(race==3,na.rm=T)]
 
 ## Caucasian Dummy Variable
 hmda_match[,caucasian:=0]
@@ -165,9 +169,14 @@ hmda_match[type_of_purchaser != 0, dummy_purchaser := 1]
 # hmda_match[,bank:=factor(bank)]
 
 #---- 3. Make weighted data on race ----
-hmda_white <- hmda_match[race == 1][sample(.N,2500000)]
-hmda_nonwhite <- hmda_match[race != 1 & is.na(race) == F]
-hmda_weighted <- rbind(hmda_white,hmda_nonwhite)
+hmda_white <- hmda_match[race == 1][sample(.N,2500000)] ## Take a sample of White mortgage's applicants
+hmda_nonwhite <- hmda_match[race != 1 & is.na(race) == F] ## Take all data of non-White mortgage applicants
+hmda_weighted <- rbind(hmda_white,hmda_nonwhite) ## Create a sample in which White people have less weight
+
+## Check
+hmda_weighted[,mean(race==1)]
+hmda_weighted[,mean(race==2)]
+hmda_weighted[,mean(race==3)]
 
 #---- 4. Export HMDA sample ----
 saveRDS(hmda_cl,file = paste0(wd,hmda.folder,"hmda_clean.rds"))
