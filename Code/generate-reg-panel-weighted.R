@@ -12,7 +12,7 @@ tri_match <- readRDS(paste0(wd,tri.folder,"tri_match.rds"))
 setkey(tri_match, year_fips)
 setkey(hmda_weighted, year_fips)
 
-#---- 3. Summarise TRI to county level and create treatment variables----
+#---- 3. Aggregate TRI to county level and create treatment variables----
 ##---- Create main TRI releases variables ----
 tri_match[,carcinogen := ifelse(carcinogen == "YES",1,0)]
 tri_match[,pbt := ifelse(classification == "PBT",1,0)]
@@ -33,7 +33,7 @@ tri_match_total <- tri_match[,lapply(.(x5.1_fugitive_air,
                                        carc_air),sum), ## Sum of all releases in one county
                              by = year_fips]
 tri_match_mean <- tri_match[,lapply(.(carcinogen,pbt),mean),by = year_fips]
-tri_match_median <- tri_match[,median(primary_naics),by=year_fips]
+tri_match_median <- tri_match[,median(primary_naics),by=year_fips] ## Collect most available industry (NAICS)in the county 
 
 ## Create TRI dataset on county level
 tri_coulev <- tri_match_total[tri_match_mean, on = "year_fips"]
@@ -106,10 +106,10 @@ full_panel <- merge(full_panel,tract_dat,all.x = TRUE, by = "census_tract")
 ### Load Census Data (Census data will be matched with the final full_panel)
 cnty_census <- readRDS(file=paste0(wd,census.folder,"county_census.rds"))
 cnty_census[,fips := NULL]
-# cnty_census[,cnty_total_wage:=as.numeric(cnty_total_wage)]
+cnty_census[,cnty_total_wage:=as.numeric(cnty_total_wage)]
 cnty_census[,cnty_unemp_rate:=as.numeric(cnty_unemp_rate)]
-# cnty_census[,cnty_labor_force:=as.numeric(cnty_labor_force)]
-# cnty_census[,cnty_unemployed:=as.numeric(cnty_unemployed)]
+cnty_census[,cnty_labor_force:=as.numeric(cnty_labor_force)]
+cnty_census[,cnty_unemployed:=as.numeric(cnty_unemployed)]
 
 ### Merge census data with full panel
 full_panel <- merge(full_panel,cnty_census,all.x = FALSE, by = "year_fips")

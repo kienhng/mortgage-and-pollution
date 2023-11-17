@@ -40,7 +40,7 @@ print(release_map)
 setwd(paste0(wd,graph.folder))
 ggsave(file = "release_map.jpg", release_map, width = 30, height = 20, units = "cm")
   
-#---- 2. Create number of facilities map ----
+#---- 2. Create number-of-facilities map ----
 tri_match <-readRDS(file=paste0(wd,tri.folder,"tri_match.rds"))
 nfac_map <- tri_match[!(state %in% c("HI"))][,.(state,latitude,longitude,fips,year,carcinogen)]
                       
@@ -79,13 +79,17 @@ hmda_match[,fips := as.character(fips)]
 hmda_match[nchar(fips) < 5,fips := paste0(0, fips)]
 
 ## Create rate spread by counties
-fips_rate <- hmda_match[,.(rate_spread=mean(rate_spread),interest_rate=mean(interest_rate),us30_spread=mean(us30_spread)),fips]
+fips_rate <- hmda_match[,.(rate_spread=mean(rate_spread), interest_rate=mean(interest_rate),
+                           us30_spread=mean(us30_spread), property_value=mean(property_value)), fips]
 counties <- as.data.table(usmap::countypop)
+
+hmda_match
+colnames(hmda_match)
 
 rate_map <- as.data.table(merge(fips_rate, counties, all.y=T, on="fips"))
 
 ## Draw map
-rate_mapplot <- plot_usmap(data = rate_map, values = "rate_spread", color = "gray80") +
+rate_mapplot <- plot_usmap(data = rate_map, values = "property_value", color = "gray80") +
   scale_fill_steps2() +
   labs(title="",
        fill="Rate Spread") +

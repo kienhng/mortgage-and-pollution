@@ -1,4 +1,4 @@
-packages <- c("readxl","data.table","tidyverse","haven","zipcodeR", "httr","jsonlite")
+packages <- c("readxl","data.table","tidyverse","haven","zipcodeR", "httr","jsonlite","fst")
 need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 
 lapply(need.install, install.packages, character.only=T)
@@ -19,6 +19,8 @@ setwd(wd)
 setwd("Data")
 setwd("RawData-HMDA")
 
+## Load data
+Sys.time()
 hmda.files <- Sys.glob("hmda????.RData")
 num_hmda.files <- length(hmda.files)
 
@@ -26,6 +28,7 @@ for (i in 1:num_hmda.files) {
   load(hmda.files[i])
 }
 Sys.time()
+
 #---- 1. Subset HMDA data ----
 ## Create the outcome variable based on US30 yield
 hmda2018[,us30_spread := interest_rate - US30Y.2018]

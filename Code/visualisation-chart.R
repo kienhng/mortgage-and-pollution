@@ -9,16 +9,6 @@ text_style <- theme(text = element_text(size=14),
                     legend.title=element_text(size=14),
                     axis.text=element_text(14))
 
-#-------- Testing Ground -----------
-tri_year <- readRDS(file=paste0(wd,panel.folder,"tri_yearfips.rds"))
-tri_clean <- readRDS(file=paste0(wd,tri.folder,"tri_clean.rds"))
-
-big <- tri_year[fips == 48245][year_fips=="2021-48245",carc_releases] ## Jefferson
-small <- tri_year[fips == 48485][year_fips=="2021-48485",carc_releases] ## Wichita
-(log(big)-log(small))*0.004
-
-#-------- Testing Ground -----------
-
 sampled_panel <- as.data.table(read_dta(paste0(wd,panel.folder,"sampled_panel.dta")))
 
 #---- 1. Summary Statisitcs ----
@@ -96,4 +86,3 @@ print(spread_carcdummy_purpose)
 setwd(paste0(wd,graph.folder))
 ggsave(file="spread_carcdummy_purpose.png",spread_carcdummy_purpose,height = 15, width = 15, units="cm")
 
-sampled_panel[,median(),purpose]

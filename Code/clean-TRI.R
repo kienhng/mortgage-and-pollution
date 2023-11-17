@@ -4,6 +4,7 @@ need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 lapply(need.install, install.packages, character.only=T)
 lapply(packages, library, character.only=T)
 
+## Load data
 tri2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
 tri2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
 tri2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
