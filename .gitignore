@@ -33,9 +33,9 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 *.Rproj
-
 *.Rhistory
 
 # Block Data and Writing folders
 /Writing
 /Data
+/Unrelated Simulations
