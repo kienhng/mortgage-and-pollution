@@ -17,11 +17,11 @@ dis "`c(username)'"
 // Set WD
 
 if "`c(username)'"=="HDC" {
-	cd "C:\Users\kingd\OneDrive\uon-msc-thesis"
+	cd "C:\Users\kingd\OneDrive\mortgage-and-pollution"
 }
 
-if "`c(username)'" == "LLR User" {
-	cd "C:\Users\LLR User\OneDrive\3_Work_Research\uon-msc-thesis"
+if "`c(username)'" == "lekie" {
+	cd "C:\Users\lekie\OneDrive\3_Work_Research\mortgage-and-pollution"
 } 
 
 use "Data\PanelData\psm_sample.dta", clear
@@ -71,10 +71,9 @@ eststo psm: teffects psmatch (rate_spread) (carc_2level dec_property_value dec_l
 	estadd local clstr "Yes", replace
 	sum `e(depvar)' if e(sample)
 	estadd scalar Mean = r(mean)
-	count if carc_on2level == 1
 	estadd scalar n_treat
 
-	tebalance summarize
-	tebalance density
+tebalance summarize
+tebalance density
 
 // restore

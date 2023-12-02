@@ -19,15 +19,11 @@ dis "`c(username)'"
 // Set WD
 
 if "`c(username)'"=="HDC" {
-	cd "C:\Users\kingd\OneDrive\uon-msc-thesis"
+	cd "C:\Users\kingd\OneDrive\mortgage-and-pollution"
 }
 
-if "`c(username)'" == "LLR User" {
-	cd "C:\Users\LLR User\OneDrive\3_Work_Research\uon-msc-thesis"
-}
-
-if "`c(username)'" == "lixkh23" {
-	cd "C:\Users\lixkh23\OneDrive\3_Work_Research\uon-msc-thesis"
+if "`c(username)'" == "lekie" {
+	cd "C:\Users\lekie\OneDrive\3_Work_Research\mortgage-and-pollution"
 }
 
 use "Data\PanelData\sampled_panel.dta", clear
