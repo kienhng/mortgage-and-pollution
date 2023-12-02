@@ -1,4 +1,4 @@
-# Repository for Research Topic: Cost of mortgage credit and industrial pollution
+# Repository for Research Project: Cost of mortgage credit and industrial pollution
 
 ### Description: 
 The repo contains the code files and documents of my Master's thesis at the University of Nottingham. There is no data, however, due to the large size of the data files which exceeds the Github limits (or maybe it slows down the Git working process - I'm not entirely sure which one is the main problem). The following documents provide details on the scripts and data descriptions:
