@@ -4,15 +4,21 @@ need.install <- packages[!(packages %in% installed.packages()[,"Package"])]
 lapply(need.install, install.packages, character.only=T)
 lapply(packages, library, character.only=T)
 
+setwd(wd)
+setwd("Data")
+setwd("RawData-TRI")
+
 ## Load data
-tri2018 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2018_us.csv")))
-tri2019 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2019_us.csv")))
-tri2020 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2020_us.csv")))
-tri2021 <- as.data.table(read_csv(paste0(wd,tri.folder,"/2021_us.csv")))
 fips <- as.data.table(read_dta(paste0(wd,census.folder,"/fips_code.dta")))
 
-tri_dat <- rbind(tri2018,tri2019,tri2020,tri2021)
-colnames(tri2018)
+tri_names <- Sys.glob("????_us.csv")
+raw_list <- list()
+
+for (i in 1:length(tri_names)) {
+  raw_file <- as.data.table(read_csv(tri_names[i]))
+  raw_list[[i]] <- raw_file
+}
+tri_dat <- rbindlist(raw_list)
 
 #---- 1. Rename Variables ----
 ## Remove the index in colnames
@@ -50,7 +56,7 @@ tri_clean <- tri_dat %>%
   filter(classification != "Dioxin") %>%
   filter(is.na(total_releases)==F) %>%
   filter(total_releases > 0) %>%
-  select(year, trifd, facility_name,  city, county, st, zip, chemical, 
+  select(year, frs_id, trifd, facility_name,  city, county, st, zip, chemical, 
          latitude, longitude, 
          industry_sector_code,  primary_naics, 
          clean_air_act_chemical, classification, 
@@ -128,7 +134,7 @@ tri_clean[,st_ct := str_replace(tri_clean$st_ct, "WI-ST CROIX ISLAND$","WI-ST CR
 tri_match <- check_fips[tri_clean, on = "st_ct"]
 
 tri_match[,year_fips := paste0(year,"-",fips)]
-tri_match <- tri_match[,.(trifd,state,state_code,latitude,longitude,county,fips,year,year_fips,
+tri_match <- tri_match[,.(frs_id,trifd,state,state_code,latitude,longitude,county,fips,year,year_fips,
                           industry_sector_code,primary_naics, 
                           carcinogen,
                           classification,
@@ -137,6 +143,43 @@ tri_match <- tri_match[,.(trifd,state,state_code,latitude,longitude,county,fips,
                           onsite_release_total,
                           total_releases)]
 
-# Export TRI data
-saveRDS(tri_clean, file = paste0(wd,tri.folder,"tri_clean.rds")) # Full cleaned data
-saveRDS(tri_match, file = paste0(wd,tri.folder,"tri_match.rds")) # Uncollapsed TRI data
+# # Export TRI data
+# saveRDS(tri_clean, file = paste0(wd,tri.folder,"tri_clean.rds")) # Full cleaned data
+# saveRDS(tri_match, file = paste0(wd,tri.folder,"tri_match.rds")) # Uncollapsed TRI data
+
+##----------- Draft analysis ------------------##
+##----------- Draft analysis ------------------##
+##----------- Draft analysis ------------------##
+
+tri_check <- tri_match[year > 2004]
+
+tri_check[,location:=paste0(latitude,longitude)]
+tri_check[,.N,location]
+tri_check[,time_total:=prod(unique(as.numeric(year))),location]
+
+tri_check[,uniqueN(location),time_total][order(time_total)]
+
+prod(2000:2022)
+
+
+tri_check <- tri_check[time_total %in% c(prod(2012:2022),prod(2013:2022),prod(2014:2022),prod(2015:2022),
+                                         prod(2016:2022),prod(2017:2022),prod(2018:2022),prod(2019:2022),
+                                         prod(2020:2022),prod(2021:2022),2022),
+                       target:="yes"]
+
+tri_check[target=="yes" & carcinogen=="YES" & total_releases > 300,target_high_poll:="yes"]
+
+tri_check[,uniqueN(frs_id)]
+tri_check[target=="yes",uniqueN(frs_id)]
+tri_check[target_high_poll=="yes",uniqueN(frs_id)]
+
+tri_check[target_high_poll=="yes",.N,state][order(N)]
+
+## Ratio
+tri_check[target=="yes",uniqueN(frs_id)]/tri_check[,uniqueN(frs_id)]*100
+tri_check[target_high_poll=="yes",uniqueN(frs_id)]/tri_check[,uniqueN(frs_id)]*100
+
+##----------- Draft analysis ------------------##
+##----------- Draft analysis ------------------##
+##----------- Draft analysis ------------------##
+
