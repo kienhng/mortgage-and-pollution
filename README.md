@@ -11,4 +11,4 @@ This research explores the impact of a long-term risk (pollution exposure) on mo
 
 The study also examines how carcinogen exposure affects mortgage interest rates across different racial groups, lender types (bank vs. non-banks), and loan purposes (refinancing vs. new purchase). The findings reveal varying impacts among racial groups, with Black and African American applicants experiencing a higher mortgage credit premium due to carcinogen exposure, exacerbating environmental disparities in the financial sector. The study also finds that lender types and loan purposes do not significantly alter the relationship between carcinogen exposure and mortgage credit costs.
 
-<img src="https://raw.githubusercontent.com/kienhng/mortgage-and-pollution/refs/heads/main/Graphs/facility_map.jpg" alt="Girl in a jacket">
+<img src="https://raw.githubusercontent.com/kienhng/mortgage-and-pollution/refs/heads/main/Graphs/facility_map.jpg" alt="Map of US carcinogen-released facility">
